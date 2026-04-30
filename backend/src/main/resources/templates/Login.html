@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link rel="stylesheet" th:href="@{/Login.css}"></head>
+<body>
+<div class="wrapper">
+    <div class="card-switch">
+            <span class="card-side"></span>
+            <div class="flip-card__inner">
+                <div class="flip-card__front">
+                    <div class="title">Login</div>
+                    <form class="flip-card__form" th:action="@{/Account/login}" method="post">
+                        <input class="flip-card__input" name="email" placeholder="Email" type="email">
+                        <input class="flip-card__input" name="password" placeholder="Password" type="password">
+                        <button class="flip-card__btn">Login</button>
+                    </form>
+                        <a th:href="@{/Account/directRegister}"><button class="flip-card__btn">Register</button></a>
+                </div>
+            </div>
+    </div>
+</div>
+</body>
+</html>

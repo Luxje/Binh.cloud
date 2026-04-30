@@ -1,0 +1,16 @@
+package com.example.MusicApp.repository;
+
+import com.example.MusicApp.model.Track;
+import org.springframework.data.repository.CrudRepository;
+
+import java.util.List;
+
+public interface TrackRepository extends CrudRepository<Track, Integer> {
+    public List<Track> findByArtistName(String artistName);
+
+    public Track findTrackByTrackId(int id);
+
+    public List<Track> findTracksByTitleContaining(String title);
+
+    public List<Track> findTracksByTitle(String title);
+}

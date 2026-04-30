@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload to Cloud</title>
+    <link rel="stylesheet" th:href="@{/upload.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+<div class="container">
+    <header class="header">
+        <div class="logo">
+            <i class="fa-solid fa-cloud"></i> Upload
+        </div>
+        <button class="close-btn">&times;</button>
+    </header>
+
+    <main class="upload-section">
+        <h1>Upload your content.</h1>
+        <p class="subtitle">
+            For best quality, use WAV, FLAC, or AIFF for audio.
+            <a href="#">Learn more.</a>
+        </p>
+
+        <div class="drop-zone">
+            <div class="icon-container">
+                <i class="fa-solid fa-music"></i>
+            </div>
+            <p>Drag and drop <strong>audio files</strong> here.</p>
+            <input type="file" id="audioInput" name="audioInput" hidden multiple accept="audio/*">
+            <button class="choose-files-btn" onclick="document.getElementById('audioInput').click()">
+                Choose Audio
+            </button>
+        </div>
+
+        <div class="drop-zone image-zone" style="margin-top: 20px; border-style: dotted; background-color: #fafafa;">
+            <div class="icon-container" style="color: #2ecc71;">
+                <i class="fa-solid fa-image"></i>
+            </div>
+            <p>Drag and drop <strong>artwork or images</strong> here.</p>
+            <input type="file" id="imageInput" name="imageInput" hidden accept="image/*">
+            <button class="choose-files-btn" style="background-color: #2ecc71;" onclick="document.getElementById('imageInput').click()">
+                Choose Image
+            </button>
+        </div>
+    </main>
+
+    <footer class="record-section">
+        <div class="record-content">
+            <i class="fa-solid fa-microphone"></i>
+            <div class="record-text">
+                <strong>Or record with a microphone</strong>
+                <p>Upload recorded voice memos, updates, news, or intros to new releases.</p>
+            </div>
+            <i class="fa-solid fa-chevron-down arrow"></i>
+        </div>
+    </footer>
+
+    <nav class="bottom-nav">
+        <a href="#">Legal</a>
+        <a href="#">Privacy</a>
+        <a href="#">Cookie Policy</a>
+        <a href="#">About us</a>
+        <a href="#">Feedback</a>
+    </nav>
+</div>
+
+</body>
+</html>

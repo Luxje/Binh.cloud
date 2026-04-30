@@ -1,0 +1,128 @@
+/* ===== Main Bar Container ===== */
+.card {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+    background: #191414;
+    border-top: 1px solid #282828;
+    padding: 0 20px;
+    display: flex;         /* Horizontal layout */
+    align-items: center;    /* Center items vertically */
+    justify-content: space-between; /* Space out Left, Center, and Right sections */
+    z-index: 9999;
+    box-sizing: border-box;
+}
+
+/* ===== Left Section: Song Info ===== */
+.top {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 30%; /* Limits song info width */
+}
+
+.pfp {
+    height: 56px;
+    width: 56px;
+    background-color: #d2d2d2;
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.title-1 {
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.title-2 {
+    color: #b3b3b3;
+    font-size: 11px;
+    margin: 0;
+}
+
+/* ===== Center Section: Controls & Progress ===== */
+.controls-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 40%;
+    gap: 8px;
+}
+
+.controls {
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: static; /* Removed absolute positioning */
+}
+
+.time {
+    width: 100%;
+    background-color: #4d4d4d;
+    height: 4px;
+    border-radius: 2px;
+    position: relative; /* Container for the elapsed bar */
+    cursor: pointer;
+}
+
+.elapsed {
+    background-color: #1db954;
+    height: 100%;
+    border-radius: 2px;
+    width: 0%; /* Controlled by JS */
+    transition: width 0.1s linear;
+}
+
+/* ===== Right Section: Volume/Extra ===== */
+.volume-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    width: 30%;
+}
+
+/* ===== Timestamps ===== */
+.timetext {
+    color: #b3b3b3;
+    font-size: 11px;
+    position: static; /* Let them sit beside the progress bar */
+}
+
+/* ===== Animations (Only active when playing) ===== */
+.playing {
+    display: flex;
+    gap: 2px;
+}
+
+.greenline {
+    background-color: #1db954;
+    width: 2px;
+    height: 15px;
+    transform-origin: bottom;
+    animation: none; /* Default to static */
+}
+
+/* Add this class via JS when playing */
+.is-playing .greenline {
+    animation: playing 1s ease-in-out infinite;
+}
+
+@keyframes playing {
+    0%, 100% { transform: scaleY(0.2); }
+    50% { transform: scaleY(1); }
+}
+
+/* Hover effects for buttons */
+.controls svg:hover {
+    color: #1db954;
+    transform: scale(1.1);
+}
