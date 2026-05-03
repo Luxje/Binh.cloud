@@ -209,6 +209,8 @@
     </footer>
   </div>
 </template>
+
+
 <script>
 export default {
   name: 'HomeView',
@@ -345,7 +347,40 @@ export default {
       if (this.player) this.player.setVolume(this.volume / 100);
     }
   }
+
+
+// async loadSpotifyData() {
+//     try {
+//       const response = await fetch('https://localhost:8080/api/songs/11dFghVXANMlKmJXsNCbNl');
+//       const rawData = await response.json();
+      
+//       // --- MANUAL SELECTION STARTS HERE ---
+//       const formattedTrack = {
+//         // You choose exactly which backend field goes to which UI field
+//         id: rawData.id, 
+//         name: rawData.name,
+        
+//         // Example: choosing the medium-sized image (index 1) manually
+//         cover: rawData.album.images[1]?.url || 'https://picsum.photos/seed/default/48/48',
+        
+//         // Adding UI-only state that the backend doesn't know about
+//         hovered: false,
+//         addedAt: new Date().toLocaleDateString() 
+//       };
+//       // --- END OF MANUAL SELECTION ---
+
+//       const exists = this.quickPicks.some(track => track.id === formattedTrack.id);
+//       if (!exists) {
+//         this.quickPicks.push(formattedTrack);
+//       }
+
+//     } catch (error) {
+//       console.error("Failed to load track:", error);
+//     }
+// }
 };
+
+
 </script>
 
 <style scoped>

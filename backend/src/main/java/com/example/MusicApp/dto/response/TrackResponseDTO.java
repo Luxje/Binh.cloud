@@ -1,50 +1,33 @@
 package com.example.MusicApp.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import se.michaelthelin.spotify.model_objects.miscellaneous.Restrictions;
 
-import java.util.List;
+import java.util.Date;
 
 @Data
 public class TrackResponseDTO {
+
+    private Integer trackId;
+
+    private String title;
+
+    private String artistName;
+
+    // Matches the @ManyToOne relationship in your entity
     private AlbumResponseDTO album;
-    private List<ArtistResponseDTO> artists;
 
-    @JsonProperty("available_markets")
-    private List<String> availableMarkets;
+    @JsonProperty("duration_seconds")
+    private Double durationSeconds;
 
-    @JsonProperty("disc_number")
-    private Integer discNumber;
+    @JsonProperty("release_date")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private Date releaseDate;
 
-    @JsonProperty("duration_ms")
-    private Long durationMs;
+    @JsonProperty("audio_file_url")
+    private String audioFileURL;
 
-    private Boolean explicit;
-
-    private String href;
-    private String id;
-
-    @JsonProperty("is_playable")
-    private Boolean isPlayable;
-
-    @JsonProperty("linked_from")
-    private Object linkedFrom; // Typically an empty object or a simplified track reference
-
-    private Restrictions restrictions;
-    private String name;
-    private Integer popularity;
-
-    @JsonProperty("preview_url")
-    private String previewUrl;
-
-    @JsonProperty("track_number")
-    private Integer trackNumber;
-
-    private String type;
-    private String uri;
-
-    @JsonProperty("is_local")
-    private Boolean isLocal;
-
+    @JsonProperty("image_path")
+    private String imagePath;
 }
