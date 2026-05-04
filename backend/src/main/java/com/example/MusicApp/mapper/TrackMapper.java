@@ -10,10 +10,10 @@ import java.util.List;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface TrackMapper {
 
-    // Add this! It's the "engine" for the list mapper
+
     TrackResponseDTO toDTO(Track track);
 
-    // This will now work because it uses the method above internally
+    //Base on the single Track return method(need the single toDTO method to work properly)
     List<TrackResponseDTO> toDTO(List<Track> tracks);
 
     Track toEntity(TrackResponseDTO trackResponseDTO);

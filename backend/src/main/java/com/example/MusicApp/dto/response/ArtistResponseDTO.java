@@ -8,7 +8,6 @@ import java.util.List;
 
 @Data
 public class ArtistResponseDTO {
-    @JsonProperty("external_urls")
 
     private FollowersResponseDTO followers;
 
