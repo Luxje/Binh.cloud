@@ -34,7 +34,7 @@ desktop.ini
 *.p12
 *.jks
 *.pem
-application-local.properties
+/mnt/userFiles/JavaFiles/PersonalProject/MusicApp/backend/src/main/resources/application.properties
 
 .idea/workspace.xml
 *.original
