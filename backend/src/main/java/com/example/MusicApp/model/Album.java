@@ -28,6 +28,9 @@ public class Album {
     @Column(name = "ReleaseDate")
     private Date releaseDate;
 
+    @Column(name = "ImagePath")
+    private String imagePath;
+
     @ManyToOne
     @JoinColumn(name = "ArtistID")
     private Artist artist;
