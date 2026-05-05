@@ -8,13 +8,16 @@ import java.util.List;
 @Data
 public class AlbumResponseDTO {
     @JsonProperty("album_genre")
-    private String albumType;
+    private String albumGenre;
 
     private String id;
     private String title;
 
+    @JsonProperty("image_path")
+    private String imagePath;
+
     @JsonProperty("release_date")
     private String releaseDate;
 
-    private List<ArtistResponseDTO> artists;
+    private ArtistResponseDTO artist;
 }
