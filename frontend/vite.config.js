@@ -9,9 +9,9 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'https://localhost:8080', // Your Spring Boot port
+        target: 'https://localhost:8080', //Spring Boot port
         changeOrigin: true,
-        secure: false, // Trust your self-signed certificate
+        secure: false, // Trust self-signed certificate
       }
     }
   }
