@@ -36,6 +36,7 @@ desktop.ini
 *.pem
 backend/src/main/resources/application.properties
 
+
 .idea/workspace.xml
 *.original
 
