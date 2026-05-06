@@ -17,13 +17,6 @@ public class AllbumController {
     private final AlbumService albumService;
 
 
-//    @GetMapping("/get")
-//    public List<AlbumResponseDTO> get10() {
-//        List<AlbumResponseDTO> albumList =  albumService.get10();
-//        return albumList;
-//    }
-
-
     //get all album from database
     @GetMapping
     public List<AlbumResponseDTO> getAll() {
@@ -34,9 +27,9 @@ public class AllbumController {
     //search by name
     @GetMapping("/search/{title}")
     public List<AlbumResponseDTO> getAlbumByTitle(@PathVariable String title) {
-        List<AlbumResponseDTO> albumList =  albumService.getAlbumByTitle(title);
-        return albumList;
+        return albumService.getAlbumByTitle(title);
     }
+
 
 
 
