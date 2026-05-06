@@ -26,13 +26,13 @@ public class TrackServiceImpl implements TrackService {
         return true;
     }
 
-    public boolean removeTrack(Track track) {
-        trackRepository.delete(track);
+    public boolean removeTrack(int id) {
+        trackRepository.removeTrackByTrackId(id);
         return true;
     }
 
     public List<TrackResponseDTO> searchTracksByTitle(String TrackTitle) {
-        List<Track> tracks = trackRepository.findByTitleIgnoreCase(TrackTitle);
+        List<Track> tracks = trackRepository.findTracksByTitleContaining(TrackTitle);
         return trackMapper.toDTO(tracks);
     }
 }

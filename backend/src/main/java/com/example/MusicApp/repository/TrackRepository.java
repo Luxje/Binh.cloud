@@ -9,12 +9,7 @@ import java.util.List;
 
 public interface TrackRepository extends JpaRepository<Track, Integer> {
 
-    public List<Track> findTracksByTitleContainingIgnoreCase(String title);
+    public List<Track> findTracksByTitleContaining(String title);
 
-
-    @Query("SELECT tr FROM Track tr WHERE tr.artistName like :artistName")
-    public List<Track> findTracksByArtistName(String artistName);
-
-    @Query("SELECT tr FROM Track tr WHERE LOWER(tr.title) LIKE LOWER(CONCAT('%', :title, '%'))")
-    List<Track> findByTitleIgnoreCase(@Param("title") String title);
+    void removeTrackByTrackId(Integer trackId);
 }

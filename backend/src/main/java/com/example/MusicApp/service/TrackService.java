@@ -1,5 +1,6 @@
 package com.example.MusicApp.service;
 
+import com.example.MusicApp.dto.response.TrackResponseDTO;
 import com.example.MusicApp.model.Album;
 import com.example.MusicApp.model.Track;
 import com.example.MusicApp.repository.AlbumRepository;
@@ -20,6 +21,13 @@ import java.util.Objects;
 
 @Service
 public interface TrackService {
+    public List<TrackResponseDTO> getAll();
+
+    public boolean addTrack(Track track);
+
+    public boolean removeTrack(int id);
+
+    public List<TrackResponseDTO> searchTracksByTitle(String title);
 
 
 

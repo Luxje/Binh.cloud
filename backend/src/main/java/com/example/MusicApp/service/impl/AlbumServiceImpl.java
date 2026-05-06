@@ -18,7 +18,7 @@ public class AlbumServiceImpl implements AlbumService {
     private final AlbumRepository albumRepository;
     private final AlbumMapper albumMapper;
 
-    //get all album in exist in database
+    //get all albums exist in database
     public List<AlbumResponseDTO> getAll() {
         List<Album> albums = albumRepository.findAll();
         return albumMapper.toDTO(albums);
@@ -30,7 +30,7 @@ public class AlbumServiceImpl implements AlbumService {
         return albumMapper.toDTO(albums);
     }
 
-    //search by album title
+    //search album by title
     public List<AlbumResponseDTO> getAlbumByTitle(String title) {
         List<Album> albums = albumRepository.findAlbumsByTitleContaining(title);
         return albumMapper.toDTO(albums);
