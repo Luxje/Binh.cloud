@@ -1,8 +1,12 @@
 <script setup>
-import Home from './view/Home.vue';
+import TrackWall from './view/TrackWall.vue';
+import AlbumWall from './view/TrackWall.vue';
+
+// import Home from './view/Home.vue';
 
 </script>
 
 <template>
-  <Home></Home>
+  <TrackWall></TrackWall>
+  <!-- <Home></Home> -->
 </template>
