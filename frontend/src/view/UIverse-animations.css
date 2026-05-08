@@ -1,0 +1,299 @@
+/* Modern Animations & Effects inspired by UIverse.io */
+
+/* Smooth transitions */
+* {
+  --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Glassmorphism effect */
+@supports (backdrop-filter: blur(1px)) {
+  .menu-bar {
+    background: rgba(15, 20, 25, 0.7) !important;
+    backdrop-filter: blur(10px);
+  }
+
+  .now-playing {
+    background: rgba(15, 20, 25, 0.7) !important;
+    backdrop-filter: blur(10px);
+  }
+
+  .search-box {
+    background: rgba(26, 31, 40, 0.5);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 8px;
+    margin-bottom: 32px;
+  }
+}
+
+/* Enhanced button styles */
+.filter-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.filter-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s var(--transition-smooth);
+}
+
+.filter-btn:hover::before {
+  left: 100%;
+}
+
+/* Track row hover effect */
+.track-row {
+  position: relative;
+  overflow: hidden;
+}
+
+.track-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, rgba(255, 107, 0, 0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s var(--transition-smooth);
+  pointer-events: none;
+}
+
+.track-row:hover::before {
+  opacity: 1;
+}
+
+.track-row:hover {
+  transform: translateX(4px) scaleY(1.02);
+}
+
+/* Search input enhancement */
+.search-input {
+  position: relative;
+}
+
+.search-input::placeholder {
+  opacity: 0.6;
+  transition: opacity 0.3s var(--transition-smooth);
+}
+
+.search-input:focus::placeholder {
+  opacity: 0.3;
+}
+
+/* Progress bar animation */
+.progress-fill {
+  background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent));
+  background-size: 200% 100%;
+  animation: shimmer 3s var(--transition-smooth) infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { background-position: 200% 0; }
+  50% { background-position: -200% 0; }
+}
+
+/* Play button pulse effect */
+.play-pause-btn {
+  position: relative;
+}
+
+.play-pause-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 107, 0, 0.3), transparent);
+  border-radius: 50%;
+  opacity: 0;
+  animation: pulse 1.5s var(--transition-smooth) infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.3);
+  }
+}
+
+/* Card hover effect with depth */
+.music-card {
+  perspective: 1000px;
+}
+
+.music-card:hover {
+  transform: translateY(-12px) rotateX(5deg);
+}
+
+.card-cover-wrap {
+  position: relative;
+  z-index: 1;
+}
+
+/* Smooth color transitions */
+.menu-link,
+.filter-btn,
+.track-row,
+.music-card {
+  transition: all 0.3s var(--transition-smooth);
+}
+
+/* Loading spinner animation */
+.spinner {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Smooth fade in for content */
+.track-row {
+  animation: slideInLeft 0.5s var(--transition-smooth) forwards;
+  opacity: 0;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Suggestion item slide animation */
+.suggestion-item {
+  animation: slideDown 0.3s var(--transition-smooth);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Button ripple effect on click */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+button {
+  position: relative;
+}
+
+button:active::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  animation: ripple 0.6s ease-out;
+  pointer-events: none;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Enhance focus states */
+input:focus,
+button:focus,
+a:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for states */
+.now-playing.visible {
+  animation: slideUp 0.4s var(--transition-smooth) forwards;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Enhanced shadows for depth */
+.music-card {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.music-card:hover {
+  box-shadow: 0 12px 24px rgba(255, 107, 0, 0.15);
+}
+
+.play-pause-btn {
+  box-shadow: 0 4px 12px rgba(255, 107, 0, 0.3);
+}
+
+.play-pause-btn:hover {
+  box-shadow: 0 8px 20px rgba(255, 107, 0, 0.4);
+}
+
+/* Smooth color transitions */
+.error-icon {
+  animation: shake 0.5s var(--transition-smooth);
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Smooth number counter animation */
+@keyframes countUp {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.track-count {
+  animation: countUp 0.6s var(--transition-smooth);
+}
+
+/* Menu link underline animation */
+.menu-link.active::after {
+  animation: expandWidth 0.4s var(--transition-smooth) forwards;
+}
+
+@keyframes expandWidth {
+  from { width: 0; }
+  to { width: 100%; }
+}
