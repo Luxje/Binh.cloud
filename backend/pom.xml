@@ -119,6 +119,12 @@
             <artifactId>mapstruct</artifactId>
             <version>1.6.3</version>
         </dependency>
+<!-- jlayer (javazoom)-->
+        <dependency>
+            <groupId>javazoom</groupId>
+            <artifactId>jlayer</artifactId>
+            <version>1.0.1</version>
+        </dependency>
     </dependencies>
 
 
