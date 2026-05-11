@@ -216,11 +216,6 @@ export default {
   name: 'HomeView',
   data() {
     return {
-      // --- Spotify SDK & Auth ---
-      player: null,
-      deviceId: null,
-      accessToken: 'YOUR_SPOTIFY_ACCESS_TOKEN', // Map this to your Spring Boot token
-      
       // --- Player UI State ---
       isPlaying: false,
       progress: 0,
@@ -280,71 +275,16 @@ export default {
     },
     userInitials() { return 'AB'; },
   },
-  mounted() {
-    this.setupSpotifySDK();
-  },
   methods: {
-    setupSpotifySDK() {
-      const script = document.createElement("script");
-      script.src = "https://sdk.scdn.co/spotify-player.js";
-      script.async = true;
-      document.body.appendChild(script);
-
-      window.onSpotifyWebPlaybackSDKReady = () => {
-        this.player = new window.Spotify.Player({
-          name: 'Binh.Cloud Web Player',
-          getOAuthToken: cb => { cb(this.accessToken); },
-          volume: this.volume / 100
-        });
-
-        // Connection Ready
-        this.player.addListener('ready', ({ device_id }) => {
-          console.log('Connected to Spotify with Device ID:', device_id);
-          this.deviceId = device_id;
-        });
-
-        // Sync State
-        this.player.addListener('player_state_changed', state => {
-          if (!state) return;
-
-          const { current_track } = state.track_window;
-          this.isPlaying = !state.paused;
-          this.currentTrack.name = current_track.name;
-          this.currentTrack.artist = current_track.artists[0].name;
-          this.currentTrack.cover = current_track.album.images[0].url;
-          
-          // Update Time & Progress
-          this.progress = (state.position / state.duration) * 100;
-          this.currentTime = this.formatTime(state.position);
-          this.totalTime = this.formatTime(state.duration);
-        });
-
-        this.player.connect();
-      };
-    },
-
     formatTime(ms) {
       const minutes = Math.floor(ms / 60000);
       const seconds = ((ms % 60000) / 1000).toFixed(0);
       return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
     },
 
-    async togglePlayback() {
-      if (this.player) await this.player.togglePlay();
-    },
-
     seekTrack(e) {
       const rect = e.currentTarget.getBoundingClientRect();
       const percent = (e.clientX - rect.left) / rect.width;
-      if (this.player) {
-        this.player.getCurrentState().then(state => {
-          if (state) this.player.seek(state.duration * percent);
-        });
-      }
-    },
-
-    updateVolume() {
-      if (this.player) this.player.setVolume(this.volume / 100);
     }
   }
 };
