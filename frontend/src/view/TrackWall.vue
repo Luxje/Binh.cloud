@@ -62,7 +62,7 @@ function applySuggestion(track) {
   activeFilter.value = track.artistName;
   searchQuery.value = '';
   searchSuggestions.value = [];
-  play(track);
+  playTrack(track);
 }
 
 const artists = computed(() => ['All', ...new Set(tracks.value.map(t => t.artistName))]);
@@ -77,36 +77,20 @@ const totalDuration = computed(() => {
   return `${m} min`;
 });
 
-const progressPct = computed(() =>
-  currentTrack.value ? (elapsed.value / currentTrack.value.durationSeconds) * 100 : 0
-);
-
-const elapsed = ref(0);
-
-function formatDur(s) {
-  const m = Math.floor(s / 60);
-  const sec = Math.floor(s % 60);
-  return `${m}:${String(sec).padStart(2, '0')}`;
-}
-
-function play(track) {
-  if (currentTrack.value && currentTrack.value.trackId === track.trackId) return;
+function playTrack(track) {
   currentTrack.value = track;
   isPlaying.value = true;
-  elapsed.value = 0;
   progress.value = 0;
   currentTime.value = '0:00';
   
   if (playTimer) clearInterval(playTimer);
-  
   playTimer = setInterval(() => {
-    elapsed.value += 1;
-    progress.value += (1 / track.durationSeconds) * 100;
-    const m = Math.floor(elapsed.value / 60);
-    const sec = (elapsed.value % 60).toString().padStart(2, '0');
-    currentTime.value = `${m}:${sec}`;
+    progress.value += 1;
+    const minutes = Math.floor(progress.value / 60);
+    const seconds = (progress.value % 60).toString().padStart(2, '0');
+    currentTime.value = `${minutes}:${seconds}`;
     
-    if (elapsed.value >= track.durationSeconds) {
+    if (progress.value >= 225) {
       clearInterval(playTimer);
       isPlaying.value = false;
       currentTrack.value = null;
@@ -185,7 +169,7 @@ onUnmounted(() => {
       <div class="content-scroll">
         <!-- Header Section -->
         <section class="greeting-section">
-          <h1 class="greeting-title">Your Library</h1>
+          <h1 class="greeting-title">Your Tracks</h1>
           <p class="track-count" v-if="!loading && !error">{{ filtered.length }} tracks · {{ totalDuration }}</p>
         </section>
 
@@ -194,7 +178,7 @@ onUnmounted(() => {
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search tracks, artists, albums..."
+            placeholder="Search tracks..."
             class="search-input"
             @input="handleSearch"
           />
@@ -225,7 +209,7 @@ onUnmounted(() => {
         <!-- Loading State -->
         <div v-if="loading" class="state-message">
           <div class="spinner"></div>
-          <p>Fetching tracks...</p>
+          <p>Loading tracks...</p>
         </div>
 
         <!-- Error State -->
@@ -234,44 +218,31 @@ onUnmounted(() => {
           <button @click="fetchTracks" class="retry-btn">Retry</button>
         </div>
 
-        <!-- Tracks Table -->
-        <div v-if="!loading && !error && filtered.length > 0" class="tracks-section">
-          <div class="tracks-header">
-            <span>#</span>
-            <span>Title</span>
-            <span style="text-align:right">Album</span>
-            <span style="text-align:right">Year</span>
-            <span style="text-align:right">Duration</span>
-          </div>
-
-          <div class="track-list">
+        <!-- Tracks Grid (Card Style) -->
+        <section v-if="!loading && !error && filtered.length > 0" class="music-section">
+          <div class="cards-grid">
             <div
-              v-for="(track, i) in filtered"
+              v-for="track in filtered"
               :key="track.trackId"
-              class="track-row"
-              :class="{ playing: currentTrack && currentTrack.trackId === track.trackId }"
-              @click="play(track)"
+              class="music-card"
+              @mouseenter="track.hovered = true"
+              @mouseleave="track.hovered = false"
+              @click="playTrack(track)"
             >
-              <div class="track-num">
-                <div v-if="currentTrack && currentTrack.trackId === track.trackId" class="bars">
-                  <div class="bar"></div>
-                  <div class="bar"></div>
-                  <div class="bar"></div>
-                </div>
-                <span v-else>{{ String(i + 1).padStart(2, '0') }}</span>
+              <div class="card-cover-wrap">
+                <img 
+                  :src="track.imagePath || 'https://picsum.photos/seed/track/180/180'" 
+                  :alt="track.title" 
+                  class="card-cover" 
+                  onerror="this.src='https://picsum.photos/seed/track/180/180'"
+                />
+                <button v-if="track.hovered" class="card-play-btn">&#9654;</button>
               </div>
-
-              <div class="track-info">
-                <div class="track-title">{{ track.title }}</div>
-                <div class="track-artist">{{ track.artistName }}</div>
-              </div>
-
-              <div class="track-album">{{ track.album?.title || 'N/A' }}</div>
-              <div class="track-date">{{ track.releaseDate ? new Date(track.releaseDate).getFullYear() : 'N/A' }}</div>
-              <div class="track-dur">{{ formatDur(track.durationSeconds) }}</div>
+              <p class="card-title">{{ track.title }}</p>
+              <p class="card-subtitle">{{ track.artistName }}</p>
             </div>
           </div>
-        </div>
+        </section>
 
         <div v-if="!loading && !error && filtered.length === 0" class="state-message">
           <p>No tracks found.</p>
@@ -344,7 +315,6 @@ onUnmounted(() => {
 
 <style scoped>
 @import "/src/styles/style.css";
-@import "/src/styles/TrackWall.css";
 
 .search-box-wrapper {
   position: relative;
@@ -438,112 +408,87 @@ onUnmounted(() => {
   border-color: #1DB954;
 }
 
-.tracks-section {
+.music-section {
   margin-top: 20px;
 }
 
-.tracks-header {
+.cards-grid {
   display: grid;
-  grid-template-columns: 60px 2fr 2fr 100px 100px;
+  grid-template-columns: repeat(6, 1fr);
   gap: 20px;
-  padding: 12px 16px;
-  border-bottom: 1px solid #282828;
-  color: #b3b3b3;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
-.track-list {
-  margin-top: 8px;
-}
-
-.track-row {
-  display: grid;
-  grid-template-columns: 60px 2fr 2fr 100px 100px;
-  gap: 20px;
-  padding: 12px 16px;
-  align-items: center;
-  border-radius: 4px;
+.music-card {
+  background: #181818;
+  border-radius: 8px;
+  padding: 16px;
   cursor: pointer;
   transition: background 0.2s;
 }
 
-.track-row:hover {
-  background: rgba(255, 255, 255, 0.05);
+.music-card:hover {
+  background: #282828;
 }
 
-.track-row.playing {
-  background: rgba(29, 185, 84, 0.2);
-  color: #1DB954;
+.card-cover-wrap {
+  position: relative;
+  margin-bottom: 16px;
 }
 
-.track-num {
+.card-cover {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 6px;
+  display: block;
+}
+
+.card-play-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #1DB954;
+  border: none;
+  color: #000;
+  font-size: 15px;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #b3b3b3;
-  font-size: 13px;
-  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  transition: transform 0.1s, background 0.15s;
+  animation: fadeInUp 0.15s ease;
 }
 
-.bars {
-  display: flex;
-  gap: 3px;
-  align-items: flex-end;
-  justify-content: center;
+.card-play-btn:hover {
+  background: #1ed760;
+  transform: scale(1.06);
 }
 
-.bar {
-  width: 3px;
-  height: 10px;
-  background: #1DB954;
-  border-radius: 2px;
-  animation: pulse 0.6s ease-in-out infinite;
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.bar:nth-child(2) {
-  animation-delay: 0.1s;
-}
-
-.bar:nth-child(3) {
-  animation-delay: 0.2s;
-}
-
-@keyframes pulse {
-  0%, 100% { height: 4px; }
-  50% { height: 10px; }
-}
-
-.track-info {
-  min-width: 0;
-}
-
-.track-title {
+.card-title {
   font-size: 14px;
-  font-weight: 600;
-  color: #fff;
+  font-weight: 700;
+  margin-bottom: 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.track-artist {
+.card-subtitle {
   font-size: 12px;
   color: #b3b3b3;
-  white-space: nowrap;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  margin-top: 4px;
-}
-
-.track-album,
-.track-date,
-.track-dur {
-  font-size: 13px;
-  color: #b3b3b3;
-  text-align: right;
 }
 
 .state-message {
@@ -599,5 +544,13 @@ onUnmounted(() => {
   font-size: 14px;
   color: #b3b3b3;
   margin-top: 12px;
+}
+
+@media (max-width: 1200px) {
+  .cards-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (max-width: 900px) {
+  .cards-grid { grid-template-columns: repeat(3, 1fr); }
 }
 </style>
