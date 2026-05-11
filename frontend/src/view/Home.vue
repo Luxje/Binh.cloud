@@ -1,4 +1,84 @@
+<script setup>
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 
+const API_URL = import.meta.env.VITE_API_URL || '';
+const tracks = ref([]);
+const albums = ref([]);
+const loading = ref(true);
+const error = ref(null);
+
+// Player state
+const currentTrack = ref(null);
+const isPlaying = ref(false);
+const progress = ref(0);
+const volume = ref(65);
+const currentTime = ref('0:00');
+const totalTime = ref('3:45');
+let playTimer = null;
+
+const greeting = computed(() => {
+  const h = new Date().getHours();
+  return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+});
+
+const userInitials = ref('AB');
+
+async function fetchData() {
+  loading.value = true;
+  error.value = null;
+  try {
+    const [tracksRes, albumsRes] = await Promise.all([
+      fetch(`${API_URL}/api/track`),
+      fetch(`${API_URL}/api/album`)
+    ]);
+    
+    if (!tracksRes.ok || !albumsRes.ok) throw new Error('Failed to fetch data');
+    
+    tracks.value = await tracksRes.json();
+    albums.value = await albumsRes.json();
+  } catch (e) {
+    error.value = e.message || 'Failed to load data';
+    console.error('Fetch error:', error.value);
+  } finally {
+    loading.value = false;
+  }
+}
+
+function playTrack(track) {
+  currentTrack.value = track;
+  isPlaying.value = true;
+  progress.value = 0;
+  currentTime.value = '0:00';
+  
+  if (playTimer) clearInterval(playTimer);
+  playTimer = setInterval(() => {
+    progress.value += 1;
+    const minutes = Math.floor(progress.value / 60);
+    const seconds = (progress.value % 60).toString().padStart(2, '0');
+    currentTime.value = `${minutes}:${seconds}`;
+    
+    if (progress.value >= 225) {
+      clearInterval(playTimer);
+      isPlaying.value = false;
+      currentTrack.value = null;
+    }
+  }, 1000);
+}
+
+function togglePlay() {
+  if (!currentTrack.value) return;
+  isPlaying.value = !isPlaying.value;
+  if (!isPlaying.value && playTimer) clearInterval(playTimer);
+}
+
+onMounted(() => {
+  fetchData();
+});
+
+onUnmounted(() => {
+  if (playTimer) clearInterval(playTimer);
+});
+</script>
 
 <template>
   <div class="home">
@@ -20,10 +100,6 @@
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10.533 1.279c-5.18 0-9.407 4.927-9.407 11.111 0 2.695.9 5.209 2.485 7.286l-2.225 3.507a.5.5 0 0 0 .75.621L5.83 21.7a9.1 9.1 0 0 0 4.703 1.29c5.18 0 9.407-4.927 9.407-11.11 0-6.184-4.227-11.11-9.407-11.11zm0 1.5c4.353 0 7.907 4.277 7.907 9.61s-3.554 9.61-7.907 9.61a7.593 7.593 0 0 1-4.045-1.18.5.5 0 0 0-.498-.01l-2.179 1.322 1.759-2.771a.5.5 0 0 0-.048-.584C3.282 17.45 2.626 15.226 2.626 12.39c0-5.333 3.554-9.61 7.907-9.61zm1.96 7.078a.5.5 0 0 0-.5-.5H6.793a.5.5 0 0 0 0 1h5.2a.5.5 0 0 0 .5-.5zm1.4 3.5a.5.5 0 0 0-.5-.5H6.793a.5.5 0 0 0 0 1h6.6a.5.5 0 0 0 .5-.5z"/></svg>
           Search
         </a>
-        <a href="#" class="nav-item">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 22a1 1 0 0 1-1-1V3a1 1 0 0 1 2 0v18a1 1 0 0 1-1 1zM15.5 2.134A1 1 0 0 0 14 3v18a1 1 0 0 0 1.5.866l11-6.5a1 1 0 0 0 0-1.732l-11-11.5zM9 3a1 1 0 0 0-1-1 1 1 0 0 0-1 1v18a1 1 0 0 0 1 1 1 1 0 0 0 1-1V3z"/></svg>
-          Your Library
-        </a>
       </nav>
 
       <div class="sidebar-section">
@@ -35,10 +111,6 @@
           <span class="heart-icon">&#9829;</span>
           Liked Songs
         </button>
-      </div>
-
-      <div class="sidebar-playlists">
-        <p v-for="playlist in sidebarPlaylists" :key="playlist" class="playlist-link">{{ playlist }}</p>
       </div>
     </aside>
 
@@ -58,109 +130,108 @@
 
       <!-- Scrollable Content -->
       <div class="content-scroll">
-        <!-- Good Morning Section -->
+        <!-- Greeting Section -->
         <section class="greeting-section">
           <h1 class="greeting-title">{{ greeting }}</h1>
-          <div class="quick-picks-grid">
-            <div
-              v-for="item in quickPicks"
-              :key="item.id"
-              class="quick-pick-card"
-              @mouseenter="item.hovered = true"
-              @mouseleave="item.hovered = false"
-            >
-              <img :src="item.cover" :alt="item.name" class="quick-pick-img" />
-              <span class="quick-pick-name">{{ item.name }}</span>
-              <button v-if="item.hovered" class="quick-pick-play">&#9654;</button>
-            </div>
-          </div>
         </section>
 
-        <!-- Recently Played -->
-        <section class="music-section">
+        <!-- Loading State -->
+        <div v-if="loading" class="state-message">
+          <div class="spinner"></div>
+          <p>Loading your music...</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-if="error && !loading" class="state-message error-state">
+          <p>❌ {{ error }}</p>
+          <button @click="fetchData" class="retry-btn">Retry</button>
+        </div>
+
+        <!-- Albums Section -->
+        <section v-if="!loading && !error && albums.length > 0" class="music-section">
           <div class="section-header">
-            <h2 class="section-title">Recently played</h2>
+            <h2 class="section-title">Albums</h2>
             <a href="#" class="show-all">Show all</a>
           </div>
           <div class="cards-grid">
             <div
-              v-for="item in recentlyPlayed"
-              :key="item.id"
+              v-for="album in albums.slice(0, 6)"
+              :key="album.id"
               class="music-card"
-              @mouseenter="item.hovered = true"
-              @mouseleave="item.hovered = false"
+              @mouseenter="album.hovered = true"
+              @mouseleave="album.hovered = false"
             >
               <div class="card-cover-wrap">
-                <img :src="item.cover" :alt="item.name" class="card-cover" :class="{ round: item.isArtist }" />
-                <button v-if="item.hovered" class="card-play-btn">&#9654;</button>
+                <img 
+                  :src="album.imagePath || 'https://picsum.photos/seed/album/180/180'" 
+                  :alt="album.title" 
+                  class="card-cover" 
+                  onerror="this.src='https://picsum.photos/seed/album/180/180'"
+                />
+                <button v-if="album.hovered" class="card-play-btn">&#9654;</button>
               </div>
-              <p class="card-title">{{ item.name }}</p>
-              <p class="card-subtitle">{{ item.subtitle }}</p>
+              <p class="card-title">{{ album.title }}</p>
+              <p class="card-subtitle">{{ album.artist?.name || 'Unknown Artist' }}</p>
             </div>
           </div>
         </section>
 
-        <!-- Made For You -->
-        <section class="music-section">
+        <!-- Tracks Section -->
+        <section v-if="!loading && !error && tracks.length > 0" class="music-section">
           <div class="section-header">
-            <h2 class="section-title">Made for you</h2>
+            <h2 class="section-title">Trending Tracks</h2>
             <a href="#" class="show-all">Show all</a>
           </div>
           <div class="cards-grid">
             <div
-              v-for="item in madeForYou"
-              :key="item.id"
+              v-for="track in tracks.slice(0, 6)"
+              :key="track.trackId"
               class="music-card"
-              @mouseenter="item.hovered = true"
-              @mouseleave="item.hovered = false"
+              @mouseenter="track.hovered = true"
+              @mouseleave="track.hovered = false"
+              @click="playTrack(track)"
             >
               <div class="card-cover-wrap">
-                <img :src="item.cover" :alt="item.name" class="card-cover" />
-                <button v-if="item.hovered" class="card-play-btn">&#9654;</button>
+                <img 
+                  :src="track.imagePath || 'https://picsum.photos/seed/track/180/180'" 
+                  :alt="track.title" 
+                  class="card-cover" 
+                  onerror="this.src='https://picsum.photos/seed/track/180/180'"
+                />
+                <button v-if="track.hovered" class="card-play-btn">&#9654;</button>
               </div>
-              <p class="card-title">{{ item.name }}</p>
-              <p class="card-subtitle">{{ item.subtitle }}</p>
+              <p class="card-title">{{ track.title }}</p>
+              <p class="card-subtitle">{{ track.artistName }}</p>
             </div>
           </div>
         </section>
 
-        <!-- Trending -->
-        <section class="music-section">
-          <div class="section-header">
-            <h2 class="section-title">Trending now</h2>
-            <a href="#" class="show-all">Show all</a>
-          </div>
-          <div class="cards-grid">
-            <div
-              v-for="item in trending"
-              :key="item.id"
-              class="music-card"
-              @mouseenter="item.hovered = true"
-              @mouseleave="item.hovered = false"
-            >
-              <div class="card-cover-wrap">
-                <img :src="item.cover" :alt="item.name" class="card-cover" />
-                <button v-if="item.hovered" class="card-play-btn">&#9654;</button>
-              </div>
-              <p class="card-title">{{ item.name }}</p>
-              <p class="card-subtitle">{{ item.subtitle }}</p>
-            </div>
-          </div>
-        </section>
+        <div v-if="!loading && !error && albums.length === 0 && tracks.length === 0" class="state-message">
+          <p>No albums or tracks found</p>
+        </div>
       </div>
     </main>
 
     <!-- Now Playing Bar -->
     <footer class="now-playing-bar">
       <div class="now-playing-left">
-        <img :src="currentTrack.cover" :alt="currentTrack.name" class="now-playing-cover" />
+        <img 
+          v-if="currentTrack"
+          :src="currentTrack.imagePath || 'https://picsum.photos/seed/track/56/56'" 
+          :alt="currentTrack.title" 
+          class="now-playing-cover" 
+          onerror="this.src='https://picsum.photos/seed/track/56/56'"
+        />
+        <img 
+          v-else
+          src="https://picsum.photos/seed/placeholder/56/56" 
+          alt="placeholder" 
+          class="now-playing-cover" 
+        />
         <div class="now-playing-info">
-          <p class="now-playing-title">{{ currentTrack.name }}</p>
-          <p class="now-playing-artist">{{ currentTrack.artist }}</p>
+          <p class="now-playing-title">{{ currentTrack?.title || 'Not Playing' }}</p>
+          <p class="now-playing-artist">{{ currentTrack?.artistName || 'Select a track' }}</p>
         </div>
-        <button class="heart-btn" :class="{ liked: currentTrack.liked }" @click="currentTrack.liked = !currentTrack.liked">
-          &#9829;
-        </button>
       </div>
 
       <div class="now-playing-center">
@@ -171,7 +242,7 @@
           <button class="ctrl-btn" title="Previous">
             <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M3.3 1a.7.7 0 0 1 .7.7v8.05L19.196.957a.7.7 0 0 1 1.004.633v21.72a.7.7 0 0 1-1.004.633L4 14.95v8.35a.7.7 0 0 1-.7.7H1.7a.7.7 0 0 1-.7-.7V1.7a.7.7 0 0 1 .7-.7h1.6z"/></svg>
           </button>
-          <button class="play-pause-btn" @click="isPlaying = !isPlaying">
+          <button class="play-pause-btn" @click="togglePlay" :disabled="!currentTrack">
             <span v-if="!isPlaying">&#9654;</span>
             <span v-else>&#9646;&#9646;</span>
           </button>
@@ -184,7 +255,7 @@
         </div>
         <div class="progress-bar-wrap">
           <span class="time-label">{{ currentTime }}</span>
-          <div class="progress-track" @click="seekTrack">
+          <div class="progress-track">
             <div class="progress-fill" :style="{ width: progress + '%' }"></div>
           </div>
           <span class="time-label">{{ totalTime }}</span>
@@ -192,12 +263,6 @@
       </div>
 
       <div class="now-playing-right">
-        <button class="ctrl-btn" title="Queue">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M15 15H3v-1.5h12V15zm0-4.5H3V9h12v1.5zM3 4.5h18V6H3V4.5zm18 11.25-4.5 4.5V13.5L21 15.75z"/></svg>
-        </button>
-        <button class="ctrl-btn" title="Devices">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M6 3h15v15.167a3.5 3.5 0 1 1-3.5-3.5H19V5H8v13.167a3.5 3.5 0 1 1-3.5-3.5H6V3zm0 13.667H4.5a1.5 1.5 0 1 0 1.5 1.5v-1.5zm13 0h-1.5a1.5 1.5 0 1 0 1.5 1.5v-1.5z"/></svg>
-        </button>
         <div class="volume-wrap">
           <button class="ctrl-btn">&#128266;</button>
           <div class="volume-track">
@@ -210,88 +275,55 @@
   </div>
 </template>
 
-
-<script>
-export default {
-  name: 'HomeView',
-  data() {
-    return {
-      // --- Player UI State ---
-      isPlaying: false,
-      progress: 0,
-      volume: 65,
-      currentTime: '0:00',
-      totalTime: '0:00',
-      currentTrack: {
-        name: 'Not Playing',
-        artist: 'Select a track',
-        cover: 'https://picsum.photos/seed/placeholder/56/56',
-        liked: false,
-      },
-
-      // --- Your Existing UI Data ---
-      quickPicks: [
-        { id: 1, name: 'Liked Songs', cover: 'https://picsum.photos/seed/liked/48/48', hovered: false },
-        { id: 2, name: 'Daily Mix 1', cover: 'https://picsum.photos/seed/mix1/48/48', hovered: false },
-        { id: 3, name: 'Chill Vibes', cover: 'https://picsum.photos/seed/chill/48/48', hovered: false },
-        { id: 4, name: 'Top Hits', cover: 'https://picsum.photos/seed/top/48/48', hovered: false },
-        { id: 5, name: 'Late Night', cover: 'https://picsum.photos/seed/night/48/48', hovered: false },
-        { id: 6, name: 'Hip-Hop Mix', cover: 'https://picsum.photos/seed/hiphop/48/48', hovered: false },
-      ],
-      recentlyPlayed: [
-        { id: 1, name: 'Daily Mix 1', subtitle: 'Based on your recent listening', cover: 'https://picsum.photos/seed/r1/160/160', hovered: false, isArtist: false },
-        { id: 2, name: 'The Weeknd', subtitle: 'Artist', cover: 'https://picsum.photos/seed/r2/160/160', hovered: false, isArtist: true },
-        { id: 3, name: 'After Hours', subtitle: 'The Weeknd', cover: 'https://picsum.photos/seed/r3/160/160', hovered: false, isArtist: false },
-        { id: 4, name: 'Chill Mix', subtitle: 'Based on your mood', cover: 'https://picsum.photos/seed/r4/160/160', hovered: false, isArtist: false },
-        { id: 5, name: 'Drake', subtitle: 'Artist', cover: 'https://picsum.photos/seed/r5/160/160', hovered: false, isArtist: true },
-        { id: 6, name: 'Certified Lover', subtitle: 'Drake', cover: 'https://picsum.photos/seed/r6/160/160', hovered: false, isArtist: false },
-      ],
-      madeForYou: [
-        { id: 1, name: 'Daily Mix 2', subtitle: 'The Weeknd, Drake, Post Malone and more', cover: 'https://picsum.photos/seed/m1/160/160', hovered: false },
-        { id: 2, name: 'Daily Mix 3', subtitle: 'Kendrick Lamar, J. Cole and more', cover: 'https://picsum.photos/seed/m2/160/160', hovered: false },
-        { id: 3, name: 'Discover Weekly', subtitle: 'Your weekly mixtape of fresh music', cover: 'https://picsum.photos/seed/m3/160/160', hovered: false },
-        { id: 4, name: 'Release Radar', subtitle: 'Catch all the latest music from artists you follow', cover: 'https://picsum.photos/seed/m4/160/160', hovered: false },
-        { id: 5, name: 'Time Capsule', subtitle: 'We made you a personalized playlist', cover: 'https://picsum.photos/seed/m5/160/160', hovered: false },
-        { id: 6, name: 'On Repeat', subtitle: 'Songs you love right now', cover: 'https://picsum.photos/seed/m6/160/160', hovered: false },
-      ],
-      trending: [
-        { id: 1, name: 'Top 50 Global', subtitle: 'Your daily update of the most played tracks', cover: 'https://picsum.photos/seed/t1/160/160', hovered: false },
-        { id: 2, name: 'Viral 50', subtitle: 'Your daily update of the most viral tracks', cover: 'https://picsum.photos/seed/t2/160/160', hovered: false },
-        { id: 3, name: 'New Music Friday', subtitle: 'The best new music, every Friday', cover: 'https://picsum.photos/seed/t3/160/160', hovered: false },
-        { id: 4, name: 'Rap Caviar', subtitle: "Music's biggest names and top hits in hip-hop", cover: 'https://picsum.photos/seed/t4/160/160', hovered: false },
-        { id: 5, name: 'Hot Hits', subtitle: 'The hottest tracks right now', cover: 'https://picsum.photos/seed/t5/160/160', hovered: false },
-        { id: 6, name: 'Pop Rising', subtitle: 'The future of pop, right now', cover: 'https://picsum.photos/seed/t6/160/160', hovered: false },
-      ],
-      sidebarPlaylists: [
-        'My Playlist #1', 'Chill Evening', 'Workout Bangers',
-        'Late Night Drive', 'Study Mode', 'Weekend Vibes',
-      ],
-    };
-  },
-  computed: {
-    greeting() {
-      const h = new Date().getHours();
-      return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
-    },
-    userInitials() { return 'AB'; },
-  },
-  methods: {
-    formatTime(ms) {
-      const minutes = Math.floor(ms / 60000);
-      const seconds = ((ms % 60000) / 1000).toFixed(0);
-      return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
-    },
-
-    seekTrack(e) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const percent = (e.clientX - rect.left) / rect.width;
-    }
-  }
-};
-
-
-</script>
-
 <style scoped>
 @import "/src/styles/style.css";
+
+.state-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #b3b3b3;
+  text-align: center;
+  gap: 20px;
+}
+
+.state-message p {
+  font-size: 16px;
+  margin: 0;
+}
+
+.state-message.error-state {
+  color: #e22134;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #282828;
+  border-top-color: #1DB954;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.retry-btn {
+  padding: 8px 16px;
+  background: #1DB954;
+  color: #000;
+  border: none;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.retry-btn:hover {
+  background: #1ed760;
+}
 </style>
