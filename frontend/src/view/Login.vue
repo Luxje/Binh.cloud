@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import '../login.css';
+import '../styles/login.css';
 
 const isSignUp = ref(false);
 const showPassword = ref(false);

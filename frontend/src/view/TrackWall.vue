@@ -130,7 +130,8 @@
 
 <script setup>
 import { ref, computed, onUnmounted } from 'vue';
-import './TrackWall.css';
+import '../styles/TrackWall.css';
+import '../styles/UIverse-animations.css';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api/track';
 

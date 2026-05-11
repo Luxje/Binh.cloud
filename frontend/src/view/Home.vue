@@ -293,5 +293,5 @@ export default {
 </script>
 
 <style scoped>
-@import "/src/style.css";
+@import "/src/styles/style.css";
 </style>
