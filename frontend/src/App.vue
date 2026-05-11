@@ -1,12 +1,13 @@
 <script setup>
+import { ref } from 'vue';
 import TrackWall from './view/TrackWall.vue';
-import AlbumWall from './view/TrackWall.vue';
+import Login from './view/Login.vue';
 
-// import Home from './view/Home.vue';
+const isLoggedIn = ref(false);
 
 </script>
 
 <template>
-  <TrackWall></TrackWall>
-  <!-- <Home></Home> -->
+  <Login v-if="!isLoggedIn"></Login>
+  <TrackWall v-else></TrackWall>
 </template>
