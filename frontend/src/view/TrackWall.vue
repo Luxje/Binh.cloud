@@ -1,156 +1,30 @@
-<template>
-  <div id="app">
-    <nav class="menu-bar">
-      <div class="menu-container">
-        <div class="menu-logo">
-          <span class="logo-icon">♫</span>
-          <span class="logo-text">SOUNDWAVE</span>
-        </div>
-        <ul class="menu-items">
-          <li><a href="#" class="menu-link active" @click.prevent="currentPage = 'tracks'">Tracks</a></li>
-          <li><a href="#" class="menu-link" @click.prevent="currentPage = 'favorites'">Likes</a></li>
-          <li><a href="#" class="menu-link" @click.prevent="currentPage = 'playlists'">Playlists</a></li>
-          <li><a href="#" class="menu-link" @click.prevent="currentPage = 'settings'">Settings</a></li>
-        </ul>
-        <div class="menu-user">
-          <button class="user-btn">👤</button>
-        </div>
-      </div>
-    </nav>
-    <div class="app">
-      <header>
-        <p class="header-tag">// discover music</p>
-        <h1>YOUR<br/><span>LIBRARY</span></h1>
-        <div class="header-line"></div>
-        <p class="track-count">{{ filtered.length }} tracks · {{ totalDuration }}</p>
-      </header>
-
-      <div class="search-box">
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search tracks, artists, albums..."
-          class="search-input"
-          @input="handleSearch"
-        />
-        <div v-if="searchSuggestions.length > 0" class="search-suggestions">
-          <div
-            v-for="suggestion in searchSuggestions"
-            :key="suggestion.trackId"
-            class="suggestion-item"
-            @click="applySuggestion(suggestion)"
-          >
-            <div class="suggestion-title">{{ suggestion.title }}</div>
-            <div class="suggestion-artist">{{ suggestion.artistName }}</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="filters" v-if="!loading && !error">
-        <button
-          v-for="artist in artists"
-          :key="artist"
-          class="filter-btn"
-          :class="{ active: activeFilter === artist }"
-          @click="toggleFilter(artist)"
-        >{{ artist }}</button>
-      </div>
-
-      <div class="tracks-header" v-if="!loading && !error && filtered.length > 0">
-        <span>#</span>
-        <span>Title</span>
-        <span style="text-align:right">Album</span>
-        <span style="text-align:right">Year</span>
-        <span style="text-align:right">Duration</span>
-      </div>
-
-      <div v-if="loading" class="state-box">
-        <div class="spinner"></div>
-        <span>Fetching tracks...</span>
-      </div>
-
-      <div v-else-if="error" class="state-box error-box">
-        <span class="error-icon">!</span>
-        <span>{{ error }}</span>
-        <button class="filter-btn retry-btn" @click="fetchTracks">Retry</button>
-      </div>
-
-      <div v-else-if="filtered.length === 0" class="state-box">
-        <span>No tracks found.</span>
-      </div>
-
-      <div v-else class="track-list">
-        <div
-          v-for="(track, i) in filtered"
-          :key="track.trackId"
-          class="track-row"
-          :class="{ playing: currentTrack && currentTrack.trackId === track.trackId }"
-          @click="play(track)"
-        >
-          <div class="track-num">
-            <div v-if="currentTrack && currentTrack.trackId === track.trackId" class="bars">
-              <div class="bar"></div>
-              <div class="bar"></div>
-              <div class="bar"></div>
-            </div>
-            <span v-else>{{ String(i + 1).padStart(2, '0') }}</span>
-          </div>
-
-          <div class="track-info">
-            <div class="track-title">{{ track.title }}</div>
-            <div class="track-artist">{{ track.artistName }}</div>
-          </div>
-
-          <div class="track-album">{{ track.album?.title || 'N/A' }}</div>
-          <div class="track-date">{{ track.releaseDate ? new Date(track.releaseDate).getFullYear() : 'N/A' }}</div>
-          <div class="track-dur">{{ formatDur(track.durationSeconds) }}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="now-playing" :class="{ visible: currentTrack }">
-      <span class="np-label">Now Playing</span>
-      <div class="np-info" v-if="currentTrack">
-        <div class="np-title">{{ currentTrack.title }}</div>
-        <div class="np-artist">{{ currentTrack.artistName }}</div>
-      </div>
-      <div class="np-progress" v-if="currentTrack">
-        <div class="progress-bar">
-          <div class="progress-fill" :style="{ width: progressPct + '%' }"></div>
-        </div>
-        <div class="progress-times">
-          <span>{{ formatDur(elapsed) }}</span>
-          <span>{{ formatDur(currentTrack.durationSeconds) }}</span>
-        </div>
-      </div>
-      <div class="np-dur" v-if="currentTrack">{{ formatDur(currentTrack.durationSeconds) }}</div>
-    </div>
-  </div>
-</template>
-
 <script setup>
-import { ref, computed, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import '../styles/TrackWall.css';
 import '../styles/UIverse-animations.css';
 
-const API_URL = import.meta.env.VITE_API_URL || '/api/track';
-
-const currentTrack = ref(null);
-const currentPage = ref('tracks');
-const activeFilter = ref('All');
-const elapsed = ref(0);
+const API_URL = import.meta.env.VITE_API_URL || '';
 const tracks = ref([]);
 const loading = ref(true);
 const error = ref(null);
 const searchQuery = ref('');
 const searchSuggestions = ref([]);
-let timer = null;
+const activeFilter = ref('All');
+const currentTrack = ref(null);
+const isPlaying = ref(false);
+const progress = ref(0);
+const volume = ref(65);
+const currentTime = ref('0:00');
+const totalTime = ref('3:45');
+let playTimer = null;
+
+const userInitials = ref('AB');
 
 async function fetchTracks() {
   loading.value = true;
   error.value = null;
   try {
-    const res = await fetch(API_URL, {
+    const res = await fetch(`${API_URL}/api/track`, {
       headers: { 'Accept': 'application/json' }
     });
     if (!res.ok) throw new Error(`Server responded with ${res.status}`);
@@ -162,15 +36,13 @@ async function fetchTracks() {
   }
 }
 
-fetchTracks();
-
 async function searchTracks(query) {
   if (!query.trim()) {
     searchSuggestions.value = [];
     return;
   }
   try {
-    const searchURL = `${API_URL}/search/${encodeURIComponent(query)}`;
+    const searchURL = `${API_URL}/api/track/search/${encodeURIComponent(query)}`;
     const res = await fetch(searchURL, {
       headers: { 'Accept': 'application/json' }
     });
@@ -209,6 +81,8 @@ const progressPct = computed(() =>
   currentTrack.value ? (elapsed.value / currentTrack.value.durationSeconds) * 100 : 0
 );
 
+const elapsed = ref(0);
+
 function formatDur(s) {
   const m = Math.floor(s / 60);
   const sec = Math.floor(s % 60);
@@ -218,27 +92,512 @@ function formatDur(s) {
 function play(track) {
   if (currentTrack.value && currentTrack.value.trackId === track.trackId) return;
   currentTrack.value = track;
+  isPlaying.value = true;
   elapsed.value = 0;
+  progress.value = 0;
+  currentTime.value = '0:00';
   
-  // Clear any existing timer before starting a new one
-  if (timer) clearInterval(timer);
+  if (playTimer) clearInterval(playTimer);
   
-  timer = setInterval(() => {
+  playTimer = setInterval(() => {
     elapsed.value += 1;
+    progress.value += (1 / track.durationSeconds) * 100;
+    const m = Math.floor(elapsed.value / 60);
+    const sec = (elapsed.value % 60).toString().padStart(2, '0');
+    currentTime.value = `${m}:${sec}`;
+    
     if (elapsed.value >= track.durationSeconds) {
-      clearInterval(timer);
-      timer = null;
+      clearInterval(playTimer);
+      isPlaying.value = false;
       currentTrack.value = null;
-      elapsed.value = 0;
     }
   }, 1000);
+}
+
+function togglePlay() {
+  if (!currentTrack.value) return;
+  isPlaying.value = !isPlaying.value;
+  if (!isPlaying.value && playTimer) clearInterval(playTimer);
 }
 
 function toggleFilter(artist) {
   activeFilter.value = activeFilter.value === artist ? 'All' : artist;
 }
 
+onMounted(() => {
+  fetchTracks();
+});
+
 onUnmounted(() => {
-  if (timer) clearInterval(timer);
+  if (playTimer) clearInterval(playTimer);
 });
 </script>
+
+<template>
+  <div class="home">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+        </svg>
+        <span class="logo-text">Binh.Cloud</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 3.247a1 1 0 0 0-1 0L4 7.577V20h4.5v-6a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v6H20V7.577l-7.5-4.33zm-2-1.732a3 3 0 0 1 3 0l7.5 4.33A2 2 0 0 1 22 7.577V21a1 1 0 0 1-1 1h-6.5a1 1 0 0 1-1-1v-6h-3v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7.577a2 2 0 0 1 1-1.732l7.5-4.33z"/></svg>
+          Home
+        </a>
+        <a href="#" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10.533 1.279c-5.18 0-9.407 4.927-9.407 11.111 0 2.695.9 5.209 2.485 7.286l-2.225 3.507a.5.5 0 0 0 .75.621L5.83 21.7a9.1 9.1 0 0 0 4.703 1.29c5.18 0 9.407-4.927 9.407-11.11 0-6.184-4.227-11.11-9.407-11.11zm0 1.5c4.353 0 7.907 4.277 7.907 9.61s-3.554 9.61-7.907 9.61a7.593 7.593 0 0 1-4.045-1.18.5.5 0 0 0-.498-.01l-2.179 1.322 1.759-2.771a.5.5 0 0 0-.048-.584C3.282 17.45 2.626 15.226 2.626 12.39c0-5.333 3.554-9.61 7.907-9.61zm1.96 7.078a.5.5 0 0 0-.5-.5H6.793a.5.5 0 0 0 0 1h5.2a.5.5 0 0 0 .5-.5zm1.4 3.5a.5.5 0 0 0-.5-.5H6.793a.5.5 0 0 0 0 1h6.6a.5.5 0 0 0 .5-.5z"/></svg>
+          Search
+        </a>
+      </nav>
+
+      <div class="sidebar-section">
+        <button class="create-playlist-btn">
+          <span class="plus-icon">+</span>
+          Create Playlist
+        </button>
+        <button class="liked-songs-btn">
+          <span class="heart-icon">&#9829;</span>
+          Liked Songs
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="topbar">
+        <div class="nav-arrows">
+          <button class="arrow-btn">&#8592;</button>
+          <button class="arrow-btn">&#8594;</button>
+        </div>
+        <div class="topbar-right">
+          <button class="topbar-btn">Premium</button>
+          <div class="user-avatar">{{ userInitials }}</div>
+        </div>
+      </header>
+
+      <!-- Scrollable Content -->
+      <div class="content-scroll">
+        <!-- Header Section -->
+        <section class="greeting-section">
+          <h1 class="greeting-title">Your Library</h1>
+          <p class="track-count" v-if="!loading && !error">{{ filtered.length }} tracks · {{ totalDuration }}</p>
+        </section>
+
+        <!-- Search Box -->
+        <div class="search-box-wrapper">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search tracks, artists, albums..."
+            class="search-input"
+            @input="handleSearch"
+          />
+          <div v-if="searchSuggestions.length > 0" class="search-suggestions">
+            <div
+              v-for="suggestion in searchSuggestions"
+              :key="suggestion.trackId"
+              class="suggestion-item"
+              @click="applySuggestion(suggestion)"
+            >
+              <div class="suggestion-title">{{ suggestion.title }}</div>
+              <div class="suggestion-artist">{{ suggestion.artistName }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Buttons -->
+        <div v-if="!loading && !error" class="filters">
+          <button
+            v-for="artist in artists"
+            :key="artist"
+            class="filter-btn"
+            :class="{ active: activeFilter === artist }"
+            @click="toggleFilter(artist)"
+          >{{ artist }}</button>
+        </div>
+
+        <!-- Loading State -->
+        <div v-if="loading" class="state-message">
+          <div class="spinner"></div>
+          <p>Fetching tracks...</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-if="error && !loading" class="state-message error-state">
+          <p>❌ {{ error }}</p>
+          <button @click="fetchTracks" class="retry-btn">Retry</button>
+        </div>
+
+        <!-- Tracks Table -->
+        <div v-if="!loading && !error && filtered.length > 0" class="tracks-section">
+          <div class="tracks-header">
+            <span>#</span>
+            <span>Title</span>
+            <span style="text-align:right">Album</span>
+            <span style="text-align:right">Year</span>
+            <span style="text-align:right">Duration</span>
+          </div>
+
+          <div class="track-list">
+            <div
+              v-for="(track, i) in filtered"
+              :key="track.trackId"
+              class="track-row"
+              :class="{ playing: currentTrack && currentTrack.trackId === track.trackId }"
+              @click="play(track)"
+            >
+              <div class="track-num">
+                <div v-if="currentTrack && currentTrack.trackId === track.trackId" class="bars">
+                  <div class="bar"></div>
+                  <div class="bar"></div>
+                  <div class="bar"></div>
+                </div>
+                <span v-else>{{ String(i + 1).padStart(2, '0') }}</span>
+              </div>
+
+              <div class="track-info">
+                <div class="track-title">{{ track.title }}</div>
+                <div class="track-artist">{{ track.artistName }}</div>
+              </div>
+
+              <div class="track-album">{{ track.album?.title || 'N/A' }}</div>
+              <div class="track-date">{{ track.releaseDate ? new Date(track.releaseDate).getFullYear() : 'N/A' }}</div>
+              <div class="track-dur">{{ formatDur(track.durationSeconds) }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="!loading && !error && filtered.length === 0" class="state-message">
+          <p>No tracks found.</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Now Playing Bar -->
+    <footer class="now-playing-bar">
+      <div class="now-playing-left">
+        <img 
+          v-if="currentTrack"
+          :src="currentTrack.imagePath || 'https://picsum.photos/seed/track/56/56'" 
+          :alt="currentTrack.title" 
+          class="now-playing-cover" 
+          onerror="this.src='https://picsum.photos/seed/track/56/56'"
+        />
+        <img 
+          v-else
+          src="https://picsum.photos/seed/placeholder/56/56" 
+          alt="placeholder" 
+          class="now-playing-cover" 
+        />
+        <div class="now-playing-info">
+          <p class="now-playing-title">{{ currentTrack?.title || 'Not Playing' }}</p>
+          <p class="now-playing-artist">{{ currentTrack?.artistName || 'Select a track' }}</p>
+        </div>
+      </div>
+
+      <div class="now-playing-center">
+        <div class="player-controls">
+          <button class="ctrl-btn" title="Shuffle">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M17.676 3.996a4 4 0 0 1 3.815 2.813 1 1 0 0 1-1.915.57 2 2 0 0 0-1.9-1.383h-.4a4 4 0 0 0-2.799 1.14l-1.738 1.67.707.73 1.028-1.013A5.98 5.98 0 0 1 17.191 7h.5a4 4 0 0 1 4 4 4 4 0 0 1-4 4h-.5a5.981 5.981 0 0 1-4.203-1.73l-4.145-4.266A4 4 0 0 0 6 7.975H5.5a4 4 0 1 0 0 8H7a1 1 0 0 1 0 2H5.5a6 6 0 0 1 0-12H6a6.003 6.003 0 0 1 4.232 1.763l4.145 4.266A3.985 3.985 0 0 0 17.191 13h.5a2 2 0 1 0 0-4h-.5a3.99 3.99 0 0 0-2.754 1.1l-1.028 1.013-.707-.73 1.738-1.67A5.985 5.985 0 0 1 17.276 7h.4a2 2 0 0 0 1.9-1.383 1 1 0 0 1 1.915.57 4 4 0 0 1-3.815 2.809v-5z"/></svg>
+          </button>
+          <button class="ctrl-btn" title="Previous">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M3.3 1a.7.7 0 0 1 .7.7v8.05L19.196.957a.7.7 0 0 1 1.004.633v21.72a.7.7 0 0 1-1.004.633L4 14.95v8.35a.7.7 0 0 1-.7.7H1.7a.7.7 0 0 1-.7-.7V1.7a.7.7 0 0 1 .7-.7h1.6z"/></svg>
+          </button>
+          <button class="play-pause-btn" @click="togglePlay" :disabled="!currentTrack">
+            <span v-if="!isPlaying">&#9654;</span>
+            <span v-else>&#9646;&#9646;</span>
+          </button>
+          <button class="ctrl-btn" title="Next">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M20.7 1a.7.7 0 0 0-.7.7v8.05L4.804.957A.7.7 0 0 0 3.8 1.59v21.72a.7.7 0 0 0 1.004.633L20 14.95v8.35a.7.7 0 0 0 .7.7h1.6a.7.7 0 0 0 .7-.7V1.7a.7.7 0 0 0-.7-.7H20.7z"/></svg>
+          </button>
+          <button class="ctrl-btn" title="Repeat">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M17 1l4 4-4 4V6H7a1 1 0 0 0-1 1v3H4V7a3 3 0 0 1 3-3h10V1zm-7 14H3l4 4 4-4H8v-1a1 1 0 0 1 1-1h9v-2h1v2a2 2 0 0 1-2 2H8v1z"/></svg>
+          </button>
+        </div>
+        <div class="progress-bar-wrap">
+          <span class="time-label">{{ currentTime }}</span>
+          <div class="progress-track">
+            <div class="progress-fill" :style="{ width: progress + '%' }"></div>
+          </div>
+          <span class="time-label">{{ totalTime }}</span>
+        </div>
+      </div>
+
+      <div class="now-playing-right">
+        <div class="volume-wrap">
+          <button class="ctrl-btn">&#128266;</button>
+          <div class="volume-track">
+            <div class="volume-fill" :style="{ width: volume + '%' }"></div>
+            <input type="range" min="0" max="100" v-model="volume" class="volume-slider" />
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+</template>
+
+<style scoped>
+@import "/src/styles/style.css";
+@import "/src/styles/TrackWall.css";
+
+.search-box-wrapper {
+  position: relative;
+  margin: 20px 0;
+  max-width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #282828;
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+  border-radius: 24px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.search-input::placeholder {
+  color: #535353;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #1DB954;
+  background: rgba(29, 185, 84, 0.1);
+}
+
+.search-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 8px;
+  background: #282828;
+  border-radius: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 10;
+  border: 1px solid #404040;
+}
+
+.suggestion-item {
+  padding: 12px 16px;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.suggestion-item:hover {
+  background: #383838;
+}
+
+.suggestion-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.suggestion-artist {
+  font-size: 12px;
+  color: #b3b3b3;
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #b3b3b3;
+  border: 1px solid #282828;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.filter-btn.active {
+  background: #1DB954;
+  color: #000;
+  border-color: #1DB954;
+}
+
+.tracks-section {
+  margin-top: 20px;
+}
+
+.tracks-header {
+  display: grid;
+  grid-template-columns: 60px 2fr 2fr 100px 100px;
+  gap: 20px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #282828;
+  color: #b3b3b3;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.track-list {
+  margin-top: 8px;
+}
+
+.track-row {
+  display: grid;
+  grid-template-columns: 60px 2fr 2fr 100px 100px;
+  gap: 20px;
+  padding: 12px 16px;
+  align-items: center;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.track-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.track-row.playing {
+  background: rgba(29, 185, 84, 0.2);
+  color: #1DB954;
+}
+
+.track-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #b3b3b3;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.bars {
+  display: flex;
+  gap: 3px;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.bar {
+  width: 3px;
+  height: 10px;
+  background: #1DB954;
+  border-radius: 2px;
+  animation: pulse 0.6s ease-in-out infinite;
+}
+
+.bar:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.bar:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+@keyframes pulse {
+  0%, 100% { height: 4px; }
+  50% { height: 10px; }
+}
+
+.track-info {
+  min-width: 0;
+}
+
+.track-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-artist {
+  font-size: 12px;
+  color: #b3b3b3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 4px;
+}
+
+.track-album,
+.track-date,
+.track-dur {
+  font-size: 13px;
+  color: #b3b3b3;
+  text-align: right;
+}
+
+.state-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #b3b3b3;
+  text-align: center;
+  gap: 20px;
+}
+
+.state-message p {
+  font-size: 16px;
+  margin: 0;
+}
+
+.state-message.error-state {
+  color: #e22134;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #282828;
+  border-top-color: #1DB954;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.retry-btn {
+  padding: 8px 16px;
+  background: #1DB954;
+  color: #000;
+  border: none;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.retry-btn:hover {
+  background: #1ed760;
+}
+
+.track-count {
+  font-size: 14px;
+  color: #b3b3b3;
+  margin-top: 12px;
+}
+</style>

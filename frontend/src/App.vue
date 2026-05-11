@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import TrackWall from './view/TrackWall.vue';
 import Login from './view/Login.vue';
 
-const isLoggedIn = ref(false);
+const isLoggedIn = ref(true);
 
 </script>
 
