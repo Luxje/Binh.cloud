@@ -101,9 +101,9 @@
             <div class="track-artist">{{ track.artistName }}</div>
           </div>
 
-          <div class="track-album">{{ track.album.title }}</div>
-          <div class="track-date">{{ track.release_date.split('-')[0] }}</div>
-          <div class="track-dur">{{ formatDur(track.duration_seconds) }}</div>
+          <div class="track-album">{{ track.album?.title || 'N/A' }}</div>
+          <div class="track-date">{{ track.releaseDate ? new Date(track.releaseDate).getFullYear() : 'N/A' }}</div>
+          <div class="track-dur">{{ formatDur(track.durationSeconds) }}</div>
         </div>
       </div>
     </div>
@@ -120,10 +120,10 @@
         </div>
         <div class="progress-times">
           <span>{{ formatDur(elapsed) }}</span>
-          <span>{{ formatDur(currentTrack.duration_seconds) }}</span>
+          <span>{{ formatDur(currentTrack.durationSeconds) }}</span>
         </div>
       </div>
-      <div class="np-dur" v-if="currentTrack">{{ formatDur(currentTrack.duration_seconds) }}</div>
+      <div class="np-dur" v-if="currentTrack">{{ formatDur(currentTrack.durationSeconds) }}</div>
     </div>
   </div>
 </template>
@@ -170,7 +170,7 @@ async function searchTracks(query) {
     return;
   }
   try {
-    const searchURL = `${API_URL}/search?q=${encodeURIComponent(query)}`;
+    const searchURL = `${API_URL}/search/${encodeURIComponent(query)}`;
     const res = await fetch(searchURL, {
       headers: { 'Accept': 'application/json' }
     });
@@ -200,13 +200,13 @@ const filtered = computed(() =>
 );
 
 const totalDuration = computed(() => {
-  const total = filtered.value.reduce((s, t) => s + t.duration_seconds, 0);
+  const total = filtered.value.reduce((s, t) => s + (t.durationSeconds || 0), 0);
   const m = Math.floor(total / 60);
   return `${m} min`;
 });
 
 const progressPct = computed(() =>
-  currentTrack.value ? (elapsed.value / currentTrack.value.duration_seconds) * 100 : 0
+  currentTrack.value ? (elapsed.value / currentTrack.value.durationSeconds) * 100 : 0
 );
 
 function formatDur(s) {
@@ -225,7 +225,7 @@ function play(track) {
   
   timer = setInterval(() => {
     elapsed.value += 1;
-    if (elapsed.value >= track.duration_seconds) {
+    if (elapsed.value >= track.durationSeconds) {
       clearInterval(timer);
       timer = null;
       currentTrack.value = null;
