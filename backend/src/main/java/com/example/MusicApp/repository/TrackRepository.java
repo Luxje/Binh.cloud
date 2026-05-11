@@ -12,4 +12,6 @@ public interface TrackRepository extends JpaRepository<Track, Integer> {
     public List<Track> findTracksByTitleContaining(String title);
 
     void removeTrackByTrackId(Integer trackId);
+
+    public Track findTrackByTrackId(Integer id);
 }
