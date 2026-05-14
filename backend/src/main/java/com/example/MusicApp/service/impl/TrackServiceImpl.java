@@ -12,6 +12,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StreamUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
@@ -21,8 +22,10 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -46,8 +49,23 @@ public class TrackServiceImpl implements TrackService {
             if (!Files.exists(trackDir)) Files.createDirectories(trackDir);
             if (!Files.exists(imageDir)) Files.createDirectories(imageDir);
 
+            //Clean path
+            String trackFilePath = StringUtils.cleanPath(Objects.requireNonNull(trackFile.getOriginalFilename()));
+            String imageFilePath = StringUtils.cleanPath(Objects.requireNonNull(imageFile.getOriginalFilename()));
 
+            //Combine Folder and file path
+            Path trackPath = trackDir.resolve(trackFilePath);
+            Path imagePath = imageDir.resolve(imageFilePath);
 
+            //Save to local
+            Files.copy(trackFile.getInputStream(), trackPath,  StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(imageFile.getInputStream(), imagePath,  StandardCopyOption.REPLACE_EXISTING);
+
+            //Set track and image path for the current file
+            track.setAudioFileURL(trackPath.toString());
+            track.setImagePath(imagePath.toString());
+            //Save to database
+            trackRepository.save(track);
 
         }catch (Exception e){
             e.printStackTrace();
