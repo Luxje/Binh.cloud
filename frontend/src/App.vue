@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import TrackWall from './view/TrackWall.vue';
 import Login from './view/Login.vue';
 import Home from './view/Home.vue';
+import UploadTrack from './view/UploadTrack.vue';
 
 const isLoggedIn = ref(true);
 const currentPage = ref('home');
@@ -29,11 +30,19 @@ const currentPage = ref('home');
         >
           🎵 Tracks
         </button>
+        <button 
+          class="nav-btn" 
+          :class="{ active: currentPage === 'upload' }"
+          @click="currentPage = 'upload'"
+        >
+          ⬆️ Upload
+        </button>
       </nav>
     </sidebar>
     <main class="main-content">
       <Home v-if="currentPage === 'home'" />
       <TrackWall v-else-if="currentPage === 'trackwall'" />
+      <UploadTrack v-else-if="currentPage === 'upload'" />
     </main>
   </div>
 </template>
