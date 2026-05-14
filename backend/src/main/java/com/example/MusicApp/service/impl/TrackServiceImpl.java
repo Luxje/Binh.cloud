@@ -66,15 +66,12 @@ public class TrackServiceImpl implements TrackService {
             track.setImagePath(imagePath.toString());
             //Save to database
             trackRepository.save(track);
+        return true;
 
         }catch (Exception e){
             e.printStackTrace();
             return false;
         }
-
-
-
-        return true;
     }
 
     public boolean removeTrack(int id) {
