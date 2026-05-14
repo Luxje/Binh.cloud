@@ -41,10 +41,12 @@ public class TrackController {
                 .body(responseBody);
     }
 
-//    @PostMapping("/upload")
-//    public ResponseEntity<String> uploadTrack(@RequestParam("file") MultipartFile file, @RequestBody Track track) {
-//
-//    }
+    @PostMapping("/upload")
+    public ResponseEntity<String> uploadTrack(@RequestParam("trackFile") MultipartFile trackFile, @RequestParam("trackCoverFile") MultipartFile trackCoverFile , @RequestBody Track track) {
+        trackService.uploadTrack(trackFile, trackCoverFile, track);
+        return ResponseEntity.ok().build();
+
+    }
 
 
 
