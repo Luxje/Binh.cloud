@@ -10,12 +10,17 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StreamUtils;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,8 +35,27 @@ public class TrackServiceImpl implements TrackService {
         return trackMapper.toDTO(tracks);
     }
 
-    public boolean addTrack(Track track) {
-        trackRepository.save(track);
+
+    @Transactional
+    public boolean uploadTrack(MultipartFile trackFile, MultipartFile imageFile , Track track) {
+        try {
+            //Track and image dir path
+            Path trackDir = Paths.get("/mnt/userFiles/JavaFiles/Filenhac");
+            Path imageDir = Paths.get("/mnt/userFiles/JavaFiles/TrackCover");
+
+            if (!Files.exists(trackDir)) Files.createDirectories(trackDir);
+            if (!Files.exists(imageDir)) Files.createDirectories(imageDir);
+
+
+
+
+        }catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+
+
+
         return true;
     }
 

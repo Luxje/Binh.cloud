@@ -16,19 +16,19 @@ import java.util.List;
 public class AllbumController {
     private final AlbumService albumService;
 
-
     //get all album from database
     @GetMapping
     public List<AlbumResponseDTO> getAll() {
         return albumService.getAll();
     }
 
-
     //search by name
     @GetMapping("/search/{title}")
     public List<AlbumResponseDTO> getAlbumByTitle(@PathVariable String title) {
         return albumService.getAlbumByTitle(title);
     }
+
+
 
 
 

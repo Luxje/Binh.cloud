@@ -1,12 +1,14 @@
 package com.example.MusicApp.controller;
 
 import com.example.MusicApp.dto.response.TrackResponseDTO;
+import com.example.MusicApp.model.Track;
 import com.example.MusicApp.service.impl.TrackServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.util.List;
@@ -38,6 +40,11 @@ public class TrackController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"song.mp3\"")
                 .body(responseBody);
     }
+
+//    @PostMapping("/upload")
+//    public ResponseEntity<String> uploadTrack(@RequestParam("file") MultipartFile file, @RequestBody Track track) {
+//
+//    }
 
 
 

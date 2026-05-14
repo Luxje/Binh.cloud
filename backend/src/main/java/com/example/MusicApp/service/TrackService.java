@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,7 +24,7 @@ import java.util.Objects;
 public interface TrackService {
     public List<TrackResponseDTO> getAll();
 
-    public boolean addTrack(Track track);
+//    public boolean uploadTrack(Track track, File file);
 
     public boolean removeTrack(int id);
 
