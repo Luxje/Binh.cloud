@@ -42,10 +42,11 @@ public class TrackServiceImpl implements TrackService {
     @Transactional
     public boolean uploadTrack(MultipartFile trackFile, MultipartFile imageFile , Track track) {
         try {
-            //Hard code track and image dir path (need some relative path in future)
+            //Hard code, track and image dir path (need some relative path in future)
             Path trackDir = Paths.get("/mnt/userFiles/JavaFiles/Filenhac");
             Path imageDir = Paths.get("/mnt/userFiles/JavaFiles/TrackCover");
 
+            //Check if the directory exists or not, if not create a new one
             if (!Files.exists(trackDir)) Files.createDirectories(trackDir);
             if (!Files.exists(imageDir)) Files.createDirectories(imageDir);
 
