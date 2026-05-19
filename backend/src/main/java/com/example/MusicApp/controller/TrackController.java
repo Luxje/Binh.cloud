@@ -16,7 +16,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/track")
-@CrossOrigin(origins = "https://localhost:5173") // Allow your Vue app
+@CrossOrigin(origins = {"https://localhost:5173"}, allowCredentials = "true")
 public class TrackController {
 
     private final TrackServiceImpl trackService;
