@@ -220,6 +220,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import WaveSurfer from 'wavesurfer.js'
+import { uploadTrack } from '../services/trackService.js'
 
 // Audio & Waveform
 const audioFile = ref(null)
@@ -398,38 +399,35 @@ const handleSubmit = async () => {
   uploadSuccess.value = false
 
   const formData = new FormData()
-  formData.append('file', audioFile.value)
-  formData.append('title', trackTitle.value)
-  formData.append('description', trackDescription.value)
-  formData.append('genre', trackGenre.value)
-  formData.append('tags', trackTags.value)
-  formData.append('privacy', trackPrivacy.value)
-  formData.append('allowComments', allowComments.value)
-  formData.append('allowDownload', allowDownload.value)
+  formData.append('trackFile', audioFile.value)
+  
+  // Append Track entity fields as JSON string
+  const trackData = {
+    title: trackTitle.value,
+    description: trackDescription.value,
+    genre: trackGenre.value,
+    tags: trackTags.value,
+    privacy: trackPrivacy.value,
+    allowComments: allowComments.value,
+    allowDownload: allowDownload.value
+  }
+  formData.append('track', JSON.stringify(trackData))
+  
   if (coverFile.value) {
-    formData.append('cover', coverFile.value)
+    formData.append('trackCoverFile', coverFile.value)
   }
 
   try {
-    // Replace with your backend API endpoint
-    const response = await fetch('http://localhost:3000/api/tracks/upload', {
-      method: 'POST',
-      body: formData
+    const response = await uploadTrack(formData, (progress) => {
+      uploadProgress.value = progress
     })
 
-    // Simulate upload progress for demo
-    await new Promise(resolve => setTimeout(resolve, 2000))
     uploadProgress.value = 100
-
-    if (response.ok) {
-      const data = await response.json()
-      uploadSuccess.value = true
-      setTimeout(() => {
-        handleReset()
-      }, 2000)
-    } else {
-      throw new Error('Upload failed')
-    }
+    uploadSuccess.value = true
+    
+    setTimeout(() => {
+      handleReset()
+    }, 2000)
   } catch (error) {
     uploadError.value = error.message || 'Upload failed. Please try again.'
     console.error('Upload error:', error)

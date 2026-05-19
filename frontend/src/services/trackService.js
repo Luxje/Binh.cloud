@@ -1,10 +1,9 @@
 // API configuration and helper functions for track uploads
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:8080/api'
 
 export const uploadTrack = async (formData, onProgress = null) => {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest()
-
     // Track upload progress
     if (onProgress) {
       xhr.upload.addEventListener('progress', (e) => {
@@ -17,7 +16,11 @@ export const uploadTrack = async (formData, onProgress = null) => {
 
     xhr.addEventListener('load', () => {
       if (xhr.status === 200 || xhr.status === 201) {
-        resolve(JSON.parse(xhr.responseText))
+        try {
+          resolve(JSON.parse(xhr.responseText))
+        } catch {
+          resolve({ success: true })
+        }
       } else {
         reject(new Error(`Upload failed with status ${xhr.status}`))
       }
@@ -31,7 +34,7 @@ export const uploadTrack = async (formData, onProgress = null) => {
       reject(new Error('Upload cancelled'))
     })
 
-    xhr.open('POST', `${API_BASE_URL}/tracks/upload`)
+    xhr.open('POST', `${API_BASE_URL}/track/upload`)
     xhr.send(formData)
   })
 }
