@@ -42,14 +42,15 @@ public class TrackServiceImpl implements TrackService {
     @Transactional
     public boolean uploadTrack(MultipartFile trackFile, MultipartFile imageFile , Track track) {
         try {
-            //Track and image dir path
+            //Hard code, track and image dir path (need some relative path in future)
             Path trackDir = Paths.get("/mnt/userFiles/JavaFiles/Filenhac");
             Path imageDir = Paths.get("/mnt/userFiles/JavaFiles/TrackCover");
 
+            //Check if the directory exists or not, if not create a new one
             if (!Files.exists(trackDir)) Files.createDirectories(trackDir);
             if (!Files.exists(imageDir)) Files.createDirectories(imageDir);
 
-            //Clean path
+            //Clean path for security purpose (prevent overwrite system file attack)
             String trackFilePath = StringUtils.cleanPath(Objects.requireNonNull(trackFile.getOriginalFilename()));
             String imageFilePath = StringUtils.cleanPath(Objects.requireNonNull(imageFile.getOriginalFilename()));
 
@@ -57,9 +58,9 @@ public class TrackServiceImpl implements TrackService {
             Path trackPath = trackDir.resolve(trackFilePath);
             Path imagePath = imageDir.resolve(imageFilePath);
 
-            //Save to local
-            Files.copy(trackFile.getInputStream(), trackPath,  StandardCopyOption.REPLACE_EXISTING);
-            Files.copy(imageFile.getInputStream(), imagePath,  StandardCopyOption.REPLACE_EXISTING);
+            //Save track and image file to local drive
+            Files.copy(trackFile.getInputStream(), trackPath, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(imageFile.getInputStream(), imagePath, StandardCopyOption.REPLACE_EXISTING);
 
             //Set track and image path for the current file
             track.setAudioFileURL(trackPath.toString());
@@ -106,7 +107,5 @@ public class TrackServiceImpl implements TrackService {
             }
         };
     }
-
-
 
 }

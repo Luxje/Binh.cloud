@@ -15,7 +15,7 @@ public class TrackResponseDTO {
 
     private String artistName;
 
-    // Matches the @ManyToOne relationship in your entity
+    // Matches the @ManyToOne relationship in entity
     private AlbumResponseDTO album;
 
     @JsonProperty("duration_seconds")
