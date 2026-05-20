@@ -25,7 +25,7 @@ async function fetchTracks() {
   loading.value = true;
   error.value = null;
   try {
-    const res = await fetch(`${API_URL}/api/track`, {
+    const res = await fetch(`${API_URL}/track`, {
       headers: { 'Accept': 'application/json' }
     });
     if (!res.ok) throw new Error(`Server responded with ${res.status}`);
@@ -43,7 +43,7 @@ async function searchTracks(query) {
     return;
   }
   try {
-    const searchURL = `${API_URL}/api/track/search/${encodeURIComponent(query)}`;
+    const searchURL = `${API_URL}/track/search/${encodeURIComponent(query)}`;
     const res = await fetch(searchURL, {
       headers: { 'Accept': 'application/json' }
     });
