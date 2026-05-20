@@ -101,84 +101,36 @@
         <div class="form-group">
           <label class="label">Track Title *</label>
           <input
-            v-model="trackTitle"
+            v-model="title"
             type="text"
             placeholder="Enter track title"
             class="input-field"
             maxlength="100"
           />
-          <span class="char-count">{{ trackTitle.length }}/100</span>
+          <span class="char-count">{{ title.length }}/100</span>
         </div>
 
-        <!-- Description -->
+        <!-- Artist Name -->
         <div class="form-group">
-          <label class="label">Description</label>
-          <textarea
-            v-model="trackDescription"
-            placeholder="Tell us about your track..."
-            class="textarea-field"
-            maxlength="500"
-            rows="4"
-          ></textarea>
-          <span class="char-count">{{ trackDescription.length }}/500</span>
+          <label class="label">Artist Name *</label>
+          <input
+            v-model="artistName"
+            type="text"
+            placeholder="Enter artist name"
+            class="input-field"
+            maxlength="100"
+          />
+          <span class="char-count">{{ artistName.length }}/100</span>
         </div>
 
-        <!-- Genre & Tags -->
-        <div class="form-row">
-          <div class="form-group half">
-            <label class="label">Genre</label>
-            <select v-model="trackGenre" class="input-field">
-              <option value="">Select Genre</option>
-              <option value="electronic">Electronic</option>
-              <option value="hip-hop">Hip Hop</option>
-              <option value="pop">Pop</option>
-              <option value="rock">Rock</option>
-              <option value="jazz">Jazz</option>
-              <option value="classical">Classical</option>
-              <option value="ambient">Ambient</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div class="form-group half">
-            <label class="label">Tags</label>
-            <input
-              v-model="trackTags"
-              type="text"
-              placeholder="e.g. remix, chill, beats"
-              class="input-field"
-            />
-          </div>
-        </div>
-
-        <!-- Privacy Settings -->
+        <!-- Release Date -->
         <div class="form-group">
-          <label class="label">Privacy</label>
-          <div class="radio-group">
-            <label class="radio-label">
-              <input v-model="trackPrivacy" type="radio" value="public" />
-              <span>Public</span>
-            </label>
-            <label class="radio-label">
-              <input v-model="trackPrivacy" type="radio" value="private" />
-              <span>Private</span>
-            </label>
-            <label class="radio-label">
-              <input v-model="trackPrivacy" type="radio" value="unlisted" />
-              <span>Unlisted</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Checkbox for Monetization -->
-        <div class="form-group">
-          <label class="checkbox-label">
-            <input v-model="allowComments" type="checkbox" />
-            <span>Allow comments</span>
-          </label>
-          <label class="checkbox-label">
-            <input v-model="allowDownload" type="checkbox" />
-            <span>Allow download</span>
-          </label>
+          <label class="label">Release Date</label>
+          <input
+            v-model="releaseDate"
+            type="date"
+            class="input-field"
+          />
         </div>
 
         <!-- Submit Button -->
@@ -220,6 +172,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import WaveSurfer from 'wavesurfer.js'
+import { uploadTrack } from '../services/trackService.js'
 
 // Audio & Waveform
 const audioFile = ref(null)
@@ -239,13 +192,9 @@ const uploadSuccess = ref(false)
 const uploadError = ref(null)
 
 // Form Fields
-const trackTitle = ref('')
-const trackDescription = ref('')
-const trackGenre = ref('')
-const trackTags = ref('')
-const trackPrivacy = ref('public')
-const allowComments = ref(true)
-const allowDownload = ref(false)
+const title = ref('')
+const artistName = ref('')
+const releaseDate = ref('')
 const coverFile = ref(null)
 const coverPreview = ref(null)
 
@@ -255,7 +204,7 @@ const coverInput = ref(null)
 
 // Computed
 const isFormValid = computed(() => {
-  return audioFile.value && trackTitle.value.trim().length > 0
+  return audioFile.value && title.value.trim().length > 0 && artistName.value.trim().length > 0
 })
 
 const progressPercent = computed(() => {
@@ -398,38 +347,30 @@ const handleSubmit = async () => {
   uploadSuccess.value = false
 
   const formData = new FormData()
-  formData.append('file', audioFile.value)
-  formData.append('title', trackTitle.value)
-  formData.append('description', trackDescription.value)
-  formData.append('genre', trackGenre.value)
-  formData.append('tags', trackTags.value)
-  formData.append('privacy', trackPrivacy.value)
-  formData.append('allowComments', allowComments.value)
-  formData.append('allowDownload', allowDownload.value)
+  formData.append('trackFile', audioFile.value)
+  
+  // Append Track entity fields
+  formData.append('title', title.value)
+  formData.append('artistName', artistName.value)
+  if (releaseDate.value) {
+    formData.append('releaseDate', releaseDate.value)
+  }
+  
   if (coverFile.value) {
-    formData.append('cover', coverFile.value)
+    formData.append('trackCoverFile', coverFile.value)
   }
 
   try {
-    // Replace with your backend API endpoint
-    const response = await fetch('http://localhost:3000/api/tracks/upload', {
-      method: 'POST',
-      body: formData
+    const response = await uploadTrack(formData, (progress) => {
+      uploadProgress.value = progress
     })
 
-    // Simulate upload progress for demo
-    await new Promise(resolve => setTimeout(resolve, 2000))
     uploadProgress.value = 100
-
-    if (response.ok) {
-      const data = await response.json()
-      uploadSuccess.value = true
-      setTimeout(() => {
-        handleReset()
-      }, 2000)
-    } else {
-      throw new Error('Upload failed')
-    }
+    uploadSuccess.value = true
+    
+    setTimeout(() => {
+      handleReset()
+    }, 2000)
   } catch (error) {
     uploadError.value = error.message || 'Upload failed. Please try again.'
     console.error('Upload error:', error)
@@ -440,13 +381,9 @@ const handleSubmit = async () => {
 
 const handleReset = () => {
   removeAudio()
-  trackTitle.value = ''
-  trackDescription.value = ''
-  trackGenre.value = ''
-  trackTags.value = ''
-  trackPrivacy.value = 'public'
-  allowComments.value = true
-  allowDownload.value = false
+  title.value = ''
+  artistName.value = ''
+  releaseDate.value = ''
   coverFile.value = null
   coverPreview.value = null
   uploadProgress.value = 0

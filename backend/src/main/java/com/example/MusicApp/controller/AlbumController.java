@@ -13,7 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/album")
-public class AllbumController {
+public class AlbumController {
     private final AlbumService albumService;
 
     //get all album from database

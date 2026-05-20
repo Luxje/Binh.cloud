@@ -16,7 +16,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/track")
-@CrossOrigin(origins = "https://localhost:5173") // Allow your Vue app
+@CrossOrigin(origins = {"https://localhost:5173"}, allowCredentials = "true")
 public class TrackController {
 
     private final TrackServiceImpl trackService;
@@ -41,10 +41,12 @@ public class TrackController {
                 .body(responseBody);
     }
 
-//    @PostMapping("/upload")
-//    public ResponseEntity<String> uploadTrack(@RequestParam("file") MultipartFile file, @RequestBody Track track) {
-//
-//    }
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> uploadTrack(@RequestParam("trackFile") MultipartFile trackFile, @RequestParam("trackCoverFile") MultipartFile trackCoverFile , @ModelAttribute Track track) {
+        trackService.uploadTrack(trackFile, trackCoverFile, track);
+        return ResponseEntity.ok().build();
+
+    }
 
 
 
