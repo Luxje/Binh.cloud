@@ -23,7 +23,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -62,7 +65,9 @@ public class TrackServiceImpl implements TrackService {
             Files.copy(trackFile.getInputStream(), trackPath, StandardCopyOption.REPLACE_EXISTING);
             Files.copy(imageFile.getInputStream(), imagePath, StandardCopyOption.REPLACE_EXISTING);
 
+
             //Set track and image path for the current file
+            track.setReleaseDate(LocalDate.now());
             track.setAudioFileURL(trackPath.toString());
             track.setImagePath(imagePath.toString());
             //Save to database

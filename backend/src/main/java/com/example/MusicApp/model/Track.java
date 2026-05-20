@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Getter
@@ -36,7 +37,7 @@ public class Track {
     private Double durationSeconds;
 
     @Column(name = "ReleaseDate")
-    private Date releaseDate;
+    private LocalDate releaseDate;
 
     @Column(name = "AudioFileURL")
     private String audioFileURL;
