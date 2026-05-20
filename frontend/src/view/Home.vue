@@ -28,8 +28,8 @@ async function fetchData() {
   error.value = null;
   try {
     const [tracksRes, albumsRes] = await Promise.all([
-      fetch(`${API_URL}/api/track`),
-      fetch(`${API_URL}/api/album`)
+      fetch(`${API_URL}/track`),
+      fetch(`${API_URL}/album`)
     ]);
     
     if (!tracksRes.ok || !albumsRes.ok) throw new Error('Failed to fetch data');
