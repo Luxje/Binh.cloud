@@ -47,7 +47,12 @@ public class TrackController {
         return ResponseEntity.ok().build();
 
     }
-
+    
+    @GetMapping(value = "/{id}/stream", produces = "audio/mpeg")
+    public ResponseEntity<ResourceRegion> streamAudio(@RequestParam("id") int trackId,
+                                                      @RequestHeader HttpHeaders header) throw IOException  {
+      
+    }
 
 
 }

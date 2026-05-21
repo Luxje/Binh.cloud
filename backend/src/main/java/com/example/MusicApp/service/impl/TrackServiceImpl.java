@@ -8,6 +8,8 @@ import com.example.MusicApp.service.TrackService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpRange;
 import org.springframework.http.ResponseEntity;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
@@ -92,7 +94,7 @@ public class TrackServiceImpl implements TrackService {
     }
 
 
-    public Resource getAudioFile(int id) {
+    public File getAudioFile(int id) {
         Track track = trackRepository.findTrackByTrackId(id);
         File file = new File(track.getAudioFileURL());
 
@@ -100,19 +102,28 @@ public class TrackServiceImpl implements TrackService {
             throw new RuntimeException("File not found");
         }
 
-        return new FileSystemResource(file);
+        return file;
     }
 
-    // public StreamingResponseBody play(int id) {
-    //     Track currentTrack = trackRepository.findTrackByTrackId(id);
-    //     return outputStream -> {
-    //         try (InputStream is = new ClassPathResource(currentTrack.getAudioFileURL()).getInputStream()) {
-    //             StreamUtils.copy(is, outputStream);
-    //         } catch (IOException e) {
-    //             throw new RuntimeException("Failed to play track", e);
-    //         }
-    //     };
-    // }
+   public StreamingResponseBody streamByChunk(int id, HttpHeaders header) {
+        //prepare for metadata
+        Track currentTrack = trackRepository.findTrackByTrackId(id);
+        
+        Resource audioResource = new FileSystemResource(this.getAudioFile(id));
+        
+        //define the chunk size 
+        long chunkSize = 1024 * 1024;
+        long contentLength = audioResource.contentLength();
+
+         HttpRange range = header.getRange().stream().findFirst().orElse(null);
+
+   
+   
+    
+   
+   
+   
+   }
 
     
 
