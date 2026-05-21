@@ -24,7 +24,7 @@ import java.util.Objects;
 public interface TrackService {
     public List<TrackResponseDTO> getAll();
 
-//    public boolean uploadTrack(Track track, File file);
+    public boolean uploadTrack(MultipartFile AudioTrackFile, MultipartFile TrackCoverFile, Track track);
 
     public boolean removeTrack(int id);
 

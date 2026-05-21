@@ -103,15 +103,17 @@ public class TrackServiceImpl implements TrackService {
         return new FileSystemResource(file);
     }
 
-    public StreamingResponseBody play(int id) {
-        Track currentTrack = trackRepository.findTrackByTrackId(id);
-        return outputStream -> {
-            try (InputStream is = new ClassPathResource(currentTrack.getAudioFileURL()).getInputStream()) {
-                StreamUtils.copy(is, outputStream);
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to play track", e);
-            }
-        };
-    }
+    // public StreamingResponseBody play(int id) {
+    //     Track currentTrack = trackRepository.findTrackByTrackId(id);
+    //     return outputStream -> {
+    //         try (InputStream is = new ClassPathResource(currentTrack.getAudioFileURL()).getInputStream()) {
+    //             StreamUtils.copy(is, outputStream);
+    //         } catch (IOException e) {
+    //             throw new RuntimeException("Failed to play track", e);
+    //         }
+    //     };
+    // }
+
+    
 
 }

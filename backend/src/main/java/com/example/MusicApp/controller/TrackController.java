@@ -2,7 +2,7 @@ package com.example.MusicApp.controller;
 
 import com.example.MusicApp.dto.response.TrackResponseDTO;
 import com.example.MusicApp.model.Track;
-import com.example.MusicApp.service.impl.TrackServiceImpl;
+import com.example.MusicApp.service.TrackService;
 import lombok.RequiredArgsConstructor;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -19,7 +19,7 @@ import java.util.List;
 @CrossOrigin(origins = {"https://localhost:5173"}, allowCredentials = "true")
 public class TrackController {
 
-    private final TrackServiceImpl trackService;
+    private final TrackService trackService;
 
     @GetMapping
     public List<TrackResponseDTO> getAllTrack() {
