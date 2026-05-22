@@ -1,8 +1,9 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, inject } from 'vue';
 import '../styles/TrackWall.css';
 import '../styles/TrackWallScoped.css';
 import '../styles/UIverse-animations.css';
+import { useAudioService } from '../services/audioService.js';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 const tracks = ref([]);
@@ -11,15 +12,18 @@ const error = ref(null);
 const searchQuery = ref('');
 const searchSuggestions = ref([]);
 const activeFilter = ref('All');
-const currentTrack = ref(null);
-const isPlaying = ref(false);
-const progress = ref(0);
-const volume = ref(65);
-const currentTime = ref('0:00');
-const totalTime = ref('3:45');
-let playTimer = null;
+
+const audioService = useAudioService();
+const { currentTrack, isPlaying, progress, currentTime, totalTime, volume } = audioService;
 
 const userInitials = ref('AB');
+
+function getImageUrl(trackId) {
+  if (!trackId) {
+    return 'https://picsum.photos/seed/track/180/180';
+  }
+  return `${API_URL}/track/${trackId}/image`;
+}
 
 async function fetchTracks() {
   loading.value = true;
@@ -79,30 +83,19 @@ const totalDuration = computed(() => {
 });
 
 function playTrack(track) {
-  currentTrack.value = track;
-  isPlaying.value = true;
-  progress.value = 0;
-  currentTime.value = '0:00';
-  
-  if (playTimer) clearInterval(playTimer);
-  playTimer = setInterval(() => {
-    progress.value += 1;
-    const minutes = Math.floor(progress.value / 60);
-    const seconds = (progress.value % 60).toString().padStart(2, '0');
-    currentTime.value = `${minutes}:${seconds}`;
-    
-    if (progress.value >= 225) {
-      clearInterval(playTimer);
-      isPlaying.value = false;
-      currentTrack.value = null;
-    }
-  }, 1000);
+  audioService.playTrack(track, API_URL);
 }
 
 function togglePlay() {
-  if (!currentTrack.value) return;
-  isPlaying.value = !isPlaying.value;
-  if (!isPlaying.value && playTimer) clearInterval(playTimer);
+  audioService.togglePlay();
+}
+
+function handleProgressClick(e) {
+  const progressTrack = e.currentTarget;
+  const rect = progressTrack.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const percentage = (clickX / rect.width) * 100;
+  audioService.seekTo(percentage);
 }
 
 function toggleFilter(artist) {
@@ -113,9 +106,6 @@ onMounted(() => {
   fetchTracks();
 });
 
-onUnmounted(() => {
-  if (playTimer) clearInterval(playTimer);
-});
 </script>
 
 <template>
@@ -200,10 +190,10 @@ onUnmounted(() => {
             >
               <div class="card-cover-wrap">
                 <img 
-                  :src="track.imagePath || 'https://picsum.photos/seed/track/180/180'" 
+                  :src="getImageUrl(track.trackId)" 
                   :alt="track.title" 
-                  class="card-cover" 
-                  onerror="this.src='https://picsum.photos/seed/track/180/180'"
+                  class="card-cover"
+                  @error="e => e.target.src = 'https://picsum.photos/seed/track/180/180'"
                 />
                 <button v-if="track.hovered" class="card-play-btn">&#9654;</button>
               </div>
@@ -224,10 +214,10 @@ onUnmounted(() => {
       <div class="now-playing-left">
         <img 
           v-if="currentTrack"
-          :src="currentTrack.imagePath || 'https://picsum.photos/seed/track/56/56'" 
+          :src="getImageUrl(currentTrack.trackId)" 
           :alt="currentTrack.title" 
-          class="now-playing-cover" 
-          onerror="this.src='https://picsum.photos/seed/track/56/56'"
+          class="now-playing-cover"
+          @error="e => e.target.src = 'https://picsum.photos/seed/track/56/56'"
         />
         <img 
           v-else
@@ -262,7 +252,7 @@ onUnmounted(() => {
         </div>
         <div class="progress-bar-wrap">
           <span class="time-label">{{ currentTime }}</span>
-          <div class="progress-track">
+          <div class="progress-track" @click="handleProgressClick">
             <div class="progress-fill" :style="{ width: progress + '%' }"></div>
           </div>
           <span class="time-label">{{ totalTime }}</span>
@@ -274,7 +264,7 @@ onUnmounted(() => {
           <button class="ctrl-btn">&#128266;</button>
           <div class="volume-track">
             <div class="volume-fill" :style="{ width: volume + '%' }"></div>
-            <input type="range" min="0" max="100" v-model="volume" class="volume-slider" />
+            <input type="range" min="0" max="100" v-model.number="volume" @input="audioService.updateVolume" class="volume-slider" />
           </div>
         </div>
       </div>

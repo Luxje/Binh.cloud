@@ -136,4 +136,8 @@ public class TrackServiceImpl implements TrackService {
                .contentType(MediaType.parseMediaType("audio/mpeg"))
                .body(region);
    }
+
+   public ResponseEntity<?> getImage(int id) {
+        
+   }
 }
