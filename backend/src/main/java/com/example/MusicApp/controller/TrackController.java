@@ -4,13 +4,14 @@ import com.example.MusicApp.dto.response.TrackResponseDTO;
 import com.example.MusicApp.model.Track;
 import com.example.MusicApp.service.TrackService;
 import lombok.RequiredArgsConstructor;
-import org.apache.hc.core5.http.HttpHeaders;
+import org.springframework.core.io.support.ResourceRegion;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -32,27 +33,19 @@ public class TrackController {
     }
 
 
-    @GetMapping("/{id}")
-    public ResponseEntity<StreamingResponseBody> streamTrack(@PathVariable int id) {
-        StreamingResponseBody responseBody = trackService.play(id);
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("audo/mpeg"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"song.mp3\"")
-                .body(responseBody);
-    }
-
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> uploadTrack(@RequestParam("trackFile") MultipartFile trackFile, @RequestParam("trackCoverFile") MultipartFile trackCoverFile , @ModelAttribute Track track) {
+    public ResponseEntity<String> uploadTrack(@RequestParam("trackFile") MultipartFile trackFile,
+                                              @RequestParam("trackCoverFile") MultipartFile trackCoverFile ,
+                                              @ModelAttribute Track track) {
         trackService.uploadTrack(trackFile, trackCoverFile, track);
         return ResponseEntity.ok().build();
 
     }
     
     @GetMapping(value = "/{id}/stream", produces = "audio/mpeg")
-    public ResponseEntity<ResourceRegion> streamAudio(@RequestParam("id") int trackId,
-                                                      @RequestHeader HttpHeaders header) throw IOException  {
-      
+    public ResponseEntity<ResourceRegion> streamAudio(@PathVariable("id") int trackId,
+                                                      @RequestHeader HttpHeaders header) throws IOException {
+        return trackService.streamByChunk(trackId, header);
     }
-
 
 }
