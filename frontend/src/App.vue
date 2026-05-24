@@ -1,13 +1,23 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import TrackWall from './view/TrackWall.vue';
 import Login from './view/Login.vue';
 import Home from './view/Home.vue';
 import UploadTrack from './view/UploadTrack.vue';
+import { useAudioService } from './services/audioService.js';
 
 const isLoggedIn = ref(true);
 const currentPage = ref('home');
+const audioService = useAudioService();
+const API_URL = import.meta.env.VITE_API_URL || '';
 
+onMounted(() => {
+  audioService.initAudio(API_URL);
+});
+
+onUnmounted(() => {
+  audioService.stopAudio();
+});
 </script>
 
 <template>

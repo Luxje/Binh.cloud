@@ -8,6 +8,8 @@ import com.example.MusicApp.service.TrackService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.ResourceRegion;
+import org.springframework.http.*;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -91,7 +93,7 @@ public class TrackServiceImpl implements TrackService {
     }
 
 
-    public Resource getAudioFile(int id) {
+    public File getAudioFile(int id) {
         Track track = trackRepository.findTrackByTrackId(id);
         File file = new File(track.getAudioFileURL());
 
@@ -99,18 +101,42 @@ public class TrackServiceImpl implements TrackService {
             throw new RuntimeException("File not found");
         }
 
-        return new FileSystemResource(file);
+        return file;
     }
 
-    public StreamingResponseBody play(int id) {
+
+    //stream by chunk of the file
+   public ResponseEntity<ResourceRegion> streamByChunk(int id, HttpHeaders header) throws IOException {
+        //prepare for metadata
         Track currentTrack = trackRepository.findTrackByTrackId(id);
-        return outputStream -> {
-            try (InputStream is = new ClassPathResource(currentTrack.getAudioFileURL()).getInputStream()) {
-                StreamUtils.copy(is, outputStream);
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to play track", e);
-            }
-        };
-    }
+        
+        Resource audioResource = new FileSystemResource(this.getAudioFile(id));
+        
+        //define the chunk size 
+        long chunkSize = 1024 * 1024;
+
+        long contentLength = audioResource.contentLength();
+        //get range from the HttpHeaders
+        HttpRange range = header.getRange().stream().findFirst().orElse(null);
+
+       ResourceRegion region;
+
+       if (range != null) {
+           //get the start and end range of the file
+           long start = range.getRangeStart(contentLength);
+           long end = range.getRangeEnd(contentLength);
+           long rangeLength = Math.min(chunkSize, end - start + 1);
+
+           region = new ResourceRegion(audioResource, start, rangeLength);
+       }else {
+           long rangeLength = Math.min(chunkSize, contentLength);
+           region = new ResourceRegion(audioResource, 0, rangeLength);
+       }
+       return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
+               .contentType(MediaType.parseMediaType("audio/mpeg"))
+               .body(region);
+   }
+
+
 
 }

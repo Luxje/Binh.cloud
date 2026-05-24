@@ -4,9 +4,14 @@ A full-stack music library application with a modern Vue 3 frontend and Spring B
 
 ## 📋 Features
 
+- **User Authentication** - Secure login and sign-up functionality
 - **Music Library Management** - Browse and manage your track collection
 - **Track Filtering** - Filter tracks by artist
+- **Upload Tracks** - Upload new audio files with metadata
+- **Audio Visualization** - Waveform display with WaveSurfer.js
 - **Now Playing Bar** - Real-time track playback with progress tracking
+- **Audio Streaming** - Stream audio files from the backend
+- **Album Management** - Organize tracks by albums
 - **Responsive Design** - Works seamlessly on desktop and mobile devices
 - **Modern UI** - Dark theme with elegant typography and smooth animations
 - **RESTful API** - Backend API for track data management
@@ -18,12 +23,22 @@ MusicApp/
 ├── backend/          # Spring Boot REST API (Java 21)
 │   ├── pom.xml
 │   └── src/
+│       └── main/java/com/example/MusicApp/
+│           ├── service/        # Business logic (Track, Auth, Album, Streaming)
+│           ├── controller/      # API endpoints
+│           └── security/        # Security configuration
 └── frontend/         # Vue 3 + Vite SPA
     ├── package.json
     └── src/
+        ├── components/     # Reusable UI components
+        ├── services/       # API & audio services
+        ├── styles/         # Global styles
+        ├── guide/          # User guides
         └── view/
-            ├── TrackWall.vue    # Main music library view
-            └── Home.vue         # Home page
+            ├── Home.vue            # Home page
+            ├── Login.vue           # Authentication view
+            ├── TrackWall.vue       # Main music library view
+            └── UploadTrack.vue     # Track upload view
 ```
 
 ## 🛠️ Tech Stack
@@ -38,6 +53,7 @@ MusicApp/
 - **Vue 3** (Composition API)
 - **Vite** (Build tool)
 - **CSS Grid** (Layout)
+- **WaveSurfer.js** (Audio visualization)
 
 ## 🚀 Quick Start
 
@@ -76,6 +92,11 @@ mvn package
 ## 📡 API Endpoints
 
 - `GET /api/track` - Fetch all tracks
+- `POST /api/track/upload` - Upload a new track
+- `POST /api/auth/login` - User login
+- `POST /api/auth/signup` - User registration
+- `GET /api/album` - Fetch all albums
+- `GET /api/stream/{trackId}` - Stream audio file
 
 ### Expected Track Structure
 ```json
@@ -93,12 +114,27 @@ mvn package
 
 ## 🎨 Components
 
+### Login.vue
+User authentication component featuring:
+- Email and password validation
+- Sign-up and login toggle
+- Password visibility toggle
+- Form error handling
+
+### UploadTrack.vue
+Track upload component with:
+- Drag-and-drop file upload zone
+- Audio file input handling
+- Waveform preview
+- Track metadata form
+
 ### TrackWall.vue
 Main music library component featuring:
 - Track list with metadata (album, year, duration)
 - Artist filter buttons
 - Playback simulation with progress bar
 - Animated now-playing indicator
+- Audio visualization
 
 ## ⚙️ Configuration
 
