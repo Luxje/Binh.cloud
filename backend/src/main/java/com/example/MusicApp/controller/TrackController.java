@@ -3,7 +3,9 @@ package com.example.MusicApp.controller;
 import com.example.MusicApp.dto.response.TrackResponseDTO;
 import com.example.MusicApp.model.Track;
 import com.example.MusicApp.service.TrackService;
+import com.example.MusicApp.util.imageGetter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourceRegion;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -21,6 +23,7 @@ import java.util.List;
 public class TrackController {
 
     private final TrackService trackService;
+    private final imageGetter imageGetter;
 
     @GetMapping
     public List<TrackResponseDTO> getAllTrack() {
@@ -35,11 +38,10 @@ public class TrackController {
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> uploadTrack(@RequestParam("trackFile") MultipartFile trackFile,
-                                              @RequestParam("trackCoverFile") MultipartFile trackCoverFile ,
+                                              @RequestParam("trackCoverFile") MultipartFile trackCoverFile,
                                               @ModelAttribute Track track) {
         trackService.uploadTrack(trackFile, trackCoverFile, track);
         return ResponseEntity.ok().build();
-
     }
     
     @GetMapping(value = "/{id}/stream", produces = "audio/mpeg")
@@ -47,5 +49,7 @@ public class TrackController {
                                                       @RequestHeader HttpHeaders header) throws IOException {
         return trackService.streamByChunk(trackId, header);
     }
+
+
 
 }

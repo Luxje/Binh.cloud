@@ -39,7 +39,9 @@ public class TrackServiceImpl implements TrackService {
     private final TrackMapper trackMapper;
 
     public List<TrackResponseDTO> getAll() {
+        String baseImageUrl = "http://localhost:8080/api/image";
         List<Track> tracks = trackRepository.findAll();
+        List <TrackResponseDTO> responseDTO = trackMapper.toDTO(tracks);
         return trackMapper.toDTO(tracks);
     }
 
@@ -108,8 +110,6 @@ public class TrackServiceImpl implements TrackService {
     //stream by chunk of the file
    public ResponseEntity<ResourceRegion> streamByChunk(int id, HttpHeaders header) throws IOException {
         //prepare for metadata
-        Track currentTrack = trackRepository.findTrackByTrackId(id);
-        
         Resource audioResource = new FileSystemResource(this.getAudioFile(id));
         
         //define the chunk size 

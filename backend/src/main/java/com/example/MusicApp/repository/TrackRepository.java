@@ -1,6 +1,7 @@
 package com.example.MusicApp.repository;
 
 import com.example.MusicApp.model.Track;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,4 +17,6 @@ public interface TrackRepository extends JpaRepository<Track, Integer> {
     public Track findTrackByTrackId(Integer id);
 
     Track getTrackByTrackId(Integer trackId);
+
+    public List<Track> findAllBy(Pageable pageable);
 }

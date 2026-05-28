@@ -3,6 +3,7 @@ package com.example.MusicApp.dto.response;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import org.springframework.core.io.Resource;
 
 import java.util.Date;
 
@@ -28,6 +29,6 @@ public class TrackResponseDTO {
     @JsonProperty("audio_file_url")
     private String audioFileURL;
 
-    @JsonProperty("image_path")
-    private String imagePath;
+    @JsonProperty("track_cover")
+    private String trackCoverUrl;
 }
