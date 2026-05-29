@@ -75,6 +75,13 @@ onMounted(() => {
   fetchData();
 });
 
+function getImageUrl(imagePath) {
+  if (!imagePath) {
+    return 'https://picsum.photos/seed/album/180/180';
+  }
+  return `${API_URL}${imagePath}`;
+}
+
 onUnmounted(() => {
   if (playTimer) clearInterval(playTimer);
 });
@@ -131,10 +138,10 @@ onUnmounted(() => {
             >
               <div class="card-cover-wrap">
                 <img 
-                  :src="album.imagePath || 'https://picsum.photos/seed/album/180/180'" 
+                  :src="getImageUrl(album.image_path)" 
                   :alt="album.title" 
                   class="card-cover" 
-                  onerror="this.src='https://picsum.photos/seed/album/180/180'"
+                  @error="e => e.target.src = 'https://picsum.photos/seed/album/180/180'"
                 />
                 <button v-if="album.hovered" class="card-play-btn">&#9654;</button>
               </div>
@@ -161,10 +168,10 @@ onUnmounted(() => {
             >
               <div class="card-cover-wrap">
                 <img 
-                  :src="track.imagePath || 'https://picsum.photos/seed/track/180/180'" 
+                  :src="getImageUrl(track.image_path)" 
                   :alt="track.title" 
                   class="card-cover" 
-                  onerror="this.src='https://picsum.photos/seed/track/180/180'"
+                  @error="e => e.target.src = 'https://picsum.photos/seed/track/180/180'"
                 />
                 <button v-if="track.hovered" class="card-play-btn">&#9654;</button>
               </div>
@@ -185,10 +192,10 @@ onUnmounted(() => {
       <div class="now-playing-left">
         <img 
           v-if="currentTrack"
-          :src="currentTrack.imagePath || 'https://picsum.photos/seed/track/56/56'" 
+          :src="getImageUrl(currentTrack.image_path)" 
           :alt="currentTrack.title" 
           class="now-playing-cover" 
-          onerror="this.src='https://picsum.photos/seed/track/56/56'"
+          @error="e => e.target.src = 'https://picsum.photos/seed/track/56/56'"
         />
         <img 
           v-else

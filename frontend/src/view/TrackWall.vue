@@ -24,13 +24,13 @@ function getImageUrl(track) {
   }
   
   // Try track's own image first
-  if (track.imagePath) {
-    return `${API_URL}${track.imagePath}`;
+  if (track.image_path) {
+    return `${API_URL}${track.image_path}`;
   }
   
   // Fall back to album cover if available
-  if (track.album?.imagePath) {
-    return `${API_URL}${track.album.imagePath}`;
+  if (track.album?.image_path) {
+    return `${API_URL}${track.album.image_path}`;
   }
   
   // Fall back to placeholder
