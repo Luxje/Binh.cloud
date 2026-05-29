@@ -23,11 +23,10 @@ import java.util.List;
 public class TrackController {
 
     private final TrackService trackService;
-    private final imageGetter imageGetter;
 
     @GetMapping
-    public List<TrackResponseDTO> getAllTrack() {
-        return trackService.getAll();
+    public List<TrackResponseDTO> getTracks() {
+        return trackService.getAll(0,50);
     }
 
     @GetMapping("/search/{trackTitle}")
@@ -43,7 +42,8 @@ public class TrackController {
         trackService.uploadTrack(trackFile, trackCoverFile, track);
         return ResponseEntity.ok().build();
     }
-    
+
+    // pass stream audio by chunk when trigger by id of the track/song
     @GetMapping(value = "/{id}/stream", produces = "audio/mpeg")
     public ResponseEntity<ResourceRegion> streamAudio(@PathVariable("id") int trackId,
                                                       @RequestHeader HttpHeaders header) throws IOException {

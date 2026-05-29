@@ -26,7 +26,7 @@ import java.util.Objects;
 
 @Service
 public interface TrackService {
-    public List<TrackResponseDTO> getAll();
+    public List<TrackResponseDTO> getAll(Integer page, Integer size);
 
     public boolean uploadTrack(MultipartFile AudioTrackFile, MultipartFile TrackCoverFile, Track track);
 

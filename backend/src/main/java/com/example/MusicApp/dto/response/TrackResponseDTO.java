@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.springframework.core.io.Resource;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -23,12 +24,11 @@ public class TrackResponseDTO {
     private Double durationSeconds;
 
     @JsonProperty("release_date")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private Date releaseDate;
+    private LocalDate releaseDate;
 
     @JsonProperty("audio_file_url")
     private String audioFileURL;
 
-    @JsonProperty("track_cover")
-    private String trackCoverUrl;
+    @JsonProperty("image_path")
+    private String imagePath;
 }
