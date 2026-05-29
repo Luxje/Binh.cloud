@@ -22,10 +22,10 @@ public class Track {
     @Column(name = "TrackID")
     private Integer trackId;
 
-    @Column(name = "Title")
+    @Column(name = "Title", columnDefinition = "NVARCHAR(MAX)")
     private String title;
 
-    @Column(name = "ArtistName")
+    @Column(name = "ArtistName", columnDefinition = "NVARCHAR(255)")
     private String artistName;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -39,10 +39,10 @@ public class Track {
     @Column(name = "ReleaseDate")
     private LocalDate releaseDate;
 
-    @Column(name = "AudioFileURL")
+    @Column(name = "AudioFileURL", columnDefinition = "NVARCHAR(MAX)")
     private String audioFileURL;
 
-    @Column(name = "ImagePath")
+    @Column(name = "ImagePath", columnDefinition = "NVARCHAR(MAX)")
     private String imagePath;
 
 

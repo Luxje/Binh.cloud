@@ -19,16 +19,16 @@ public class Album {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int albumId;
 
-    @Column(name = "Title")
+    @Column(name = "Title", columnDefinition = "NVARCHAR(MAX)")
     private String title;
 
-    @Column(name = "Genre")
+    @Column(name = "Genre", columnDefinition = "NVARCHAR(255)")
     private String genre;
 
     @Column(name = "ReleaseDate")
     private Date releaseDate;
 
-    @Column(name = "ImagePath")
+    @Column(name = "ImagePath", columnDefinition = "NVARCHAR(MAX)")
     private String imagePath;
 
     @ManyToOne

@@ -17,13 +17,13 @@ public class Artist {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer artistId;
 
-    @Column(name = "Name")
+    @Column(name = "Name", columnDefinition = "NVARCHAR(255)")
     private String name;
 
-    @Column(name = "Email")
+    @Column(name = "Email", columnDefinition = "NVARCHAR(255)")
     private String email;
 
-    @Column(name = "Genre")
+    @Column(name = "Genre", columnDefinition = "NVARCHAR(255)")
     private String genre;
 
     @OneToOne
