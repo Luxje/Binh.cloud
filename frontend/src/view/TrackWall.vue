@@ -18,11 +18,23 @@ const { currentTrack, isPlaying, progress, currentTime, totalTime, volume } = au
 
 const userInitials = ref('AB');
 
-function getImageUrl(trackId) {
-  if (!trackId) {
+function getImageUrl(track) {
+  if (!track) {
     return 'https://picsum.photos/seed/track/180/180';
   }
-  return `${API_URL}/track/${trackId}/image`;
+  
+  // Try track's own image first
+  if (track.imagePath) {
+    return `${API_URL}${track.imagePath}`;
+  }
+  
+  // Fall back to album cover if available
+  if (track.album?.imagePath) {
+    return `${API_URL}${track.album.imagePath}`;
+  }
+  
+  // Fall back to placeholder
+  return 'https://picsum.photos/seed/track/180/180';
 }
 
 async function fetchTracks() {
@@ -190,7 +202,7 @@ onMounted(() => {
             >
               <div class="card-cover-wrap">
                 <img 
-                  :src="getImageUrl(track.trackId)" 
+                  :src="getImageUrl(track)" 
                   :alt="track.title" 
                   class="card-cover"
                   @error="e => e.target.src = 'https://picsum.photos/seed/track/180/180'"
@@ -214,7 +226,7 @@ onMounted(() => {
       <div class="now-playing-left">
         <img 
           v-if="currentTrack"
-          :src="getImageUrl(currentTrack.trackId)" 
+          :src="getImageUrl(currentTrack)" 
           :alt="currentTrack.title" 
           class="now-playing-cover"
           @error="e => e.target.src = 'https://picsum.photos/seed/track/56/56'"

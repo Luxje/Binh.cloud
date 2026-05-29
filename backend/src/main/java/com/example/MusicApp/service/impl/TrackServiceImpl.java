@@ -49,10 +49,10 @@ public class TrackServiceImpl implements TrackService {
         List<Track> tracks = trackRepository.findAllBy(pageable);
         List <TrackResponseDTO> responseDTO = trackMapper.toDTO(tracks);
         //base cover image url
-        String baseImageUrl = "http://localhost:8080/api/image";
+        String baseImageUrl = "/image";
         //Loop through all the tracks inside responseDTO to set TrackCoverUrl (max 50 tracks)
         for (TrackResponseDTO dto : responseDTO) {
-            dto.setImagePath(baseImageUrl + dto.getImagePath());
+            dto.setImagePath(baseImageUrl + "/" + dto.getTrackId());
         }
             return responseDTO;
     }
