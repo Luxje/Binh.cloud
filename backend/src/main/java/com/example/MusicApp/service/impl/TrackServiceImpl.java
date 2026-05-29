@@ -9,6 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourceRegion;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.*;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
@@ -38,9 +41,20 @@ public class TrackServiceImpl implements TrackService {
     private final TrackRepository trackRepository;
     private final TrackMapper trackMapper;
 
-    public List<TrackResponseDTO> getAll() {
-        List<Track> tracks = trackRepository.findAll();
-        return trackMapper.toDTO(tracks);
+    public List<TrackResponseDTO> getAll(Integer page, Integer size) {
+        // default page and size for Pageable
+        int defaultPage = (page != null) ? page : 0;
+        int defaultSize = (size != null) ? size : 50;
+        Pageable pageable = PageRequest.of(defaultPage, defaultSize,  Sort.by(Sort.Direction.DESC, "ReleaseDate"));
+        List<Track> tracks = trackRepository.findAllBy(pageable);
+        List <TrackResponseDTO> responseDTO = trackMapper.toDTO(tracks);
+        //base cover image url
+        String baseImageUrl = "http://localhost:8080/api/image";
+        //Loop through all the tracks inside responseDTO to set TrackCoverUrl (max 50 tracks)
+        for (TrackResponseDTO dto : responseDTO) {
+            dto.setImagePath(baseImageUrl + dto.getImagePath());
+        }
+            return responseDTO;
     }
 
 
@@ -108,8 +122,6 @@ public class TrackServiceImpl implements TrackService {
     //stream by chunk of the file
    public ResponseEntity<ResourceRegion> streamByChunk(int id, HttpHeaders header) throws IOException {
         //prepare for metadata
-        Track currentTrack = trackRepository.findTrackByTrackId(id);
-        
         Resource audioResource = new FileSystemResource(this.getAudioFile(id));
         
         //define the chunk size 

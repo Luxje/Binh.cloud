@@ -3,7 +3,9 @@ package com.example.MusicApp.controller;
 import com.example.MusicApp.dto.response.TrackResponseDTO;
 import com.example.MusicApp.model.Track;
 import com.example.MusicApp.service.TrackService;
+import com.example.MusicApp.util.imageGetter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourceRegion;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -23,8 +25,8 @@ public class TrackController {
     private final TrackService trackService;
 
     @GetMapping
-    public List<TrackResponseDTO> getAllTrack() {
-        return trackService.getAll();
+    public List<TrackResponseDTO> getTracks() {
+        return trackService.getAll(0,50);
     }
 
     @GetMapping("/search/{trackTitle}")
@@ -35,17 +37,19 @@ public class TrackController {
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> uploadTrack(@RequestParam("trackFile") MultipartFile trackFile,
-                                              @RequestParam("trackCoverFile") MultipartFile trackCoverFile ,
+                                              @RequestParam("trackCoverFile") MultipartFile trackCoverFile,
                                               @ModelAttribute Track track) {
         trackService.uploadTrack(trackFile, trackCoverFile, track);
         return ResponseEntity.ok().build();
-
     }
-    
+
+    // pass stream audio by chunk when trigger by id of the track/song
     @GetMapping(value = "/{id}/stream", produces = "audio/mpeg")
     public ResponseEntity<ResourceRegion> streamAudio(@PathVariable("id") int trackId,
                                                       @RequestHeader HttpHeaders header) throws IOException {
         return trackService.streamByChunk(trackId, header);
     }
+
+
 
 }
